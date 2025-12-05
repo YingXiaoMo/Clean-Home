@@ -1,11 +1,12 @@
 <template>
   <div class="hitokoto-card glass-card">
+    
     <div class="music-area-top" @click.stop="store.musicOpenState = true" :title="t('music.open')">
       <Icon icon="ri:music-2-fill" width="16" height="16" class="music-icon"/>
       <span class="music-text">{{ t('music.open') }}</span>
     </div>
     
-    <div class="content-wrapper" @click="updateHitokoto">
+    <div class="content-wrapper" @click="handleUpdate">
       <div class="content">
         <span class="text">“ {{ hitokoto.text }} ”</span>
       </div>
@@ -18,14 +19,27 @@
 </template>
 
 <script setup>
+import { onMounted, watch } from 'vue';
 import { useHitokoto } from '@/composables/useHitokoto';
 import { useGlobalStore } from '@/store';
 import { Icon } from '@iconify/vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'; 
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { hitokoto, updateHitokoto } = useHitokoto();
 const store = useGlobalStore();
+
+const handleUpdate = () => {
+  updateHitokoto(locale.value);
+};
+
+watch(locale, (newLang) => {
+  updateHitokoto(newLang);
+});
+
+onMounted(() => {
+  updateHitokoto(locale.value);
+});
 </script>
 
 <style scoped lang="scss">

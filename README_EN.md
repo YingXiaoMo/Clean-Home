@@ -168,6 +168,6 @@ Thanks to the following projects for inspiration and resources:
 
 - **Original Design: [imsyy/home](https://github.com/imsyy/home)**
 - **[VORE-API](https://github.com/imsyy/home)**
-- **[Xxapi](https://xxapi.cn/)
-- **Icons: [Remix Icon via Iconify](https://icon-sets.iconify.design/)
+- **[Xxapi](https://xxapi.cn)**
+- **Icons: [Remix Icon via Iconify](https://icon-sets.iconify.design)**
 - **Visitor Stats: Busuanzi**
