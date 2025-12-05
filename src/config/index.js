@@ -1,4 +1,5 @@
 // src/config/index.js
+import { globalPlaylist } from './music';
 
 /**
  * -----------------------------------------------------------------------------
@@ -15,7 +16,7 @@ export const siteConfig = {
   description: "记录生活碎片、收集灵感糖果的小站，点进来就是朋友啦！",
   url: "ovoxo.cc",                   // 站点链接 (用户自己的域名)
   startTime: "2025-04-15",           // 建站时间
-  icp: "京ICP备2022015201号-1",       // ICP 备案号
+  icp: "-----备案信息-----",       // ICP 备案号
   
 
 
@@ -47,6 +48,10 @@ export const musicConfig = {
   server: "netease",              // 音乐平台 可选值: 'netease' (网易云) | 'tencent' (QQ音乐)
   type: "playlist",               // 播放类型 可选值: 'playlist' (歌单) | 'song' (单曲) | 'album' (专辑)
   id: "13575938506",              // 歌单 ID 或 歌曲 ID 在网易云网页版打开歌单，URL 中的 id=xxxxxx 即为 ID
+
+
+// 英文模式：使用静态导入的全球歌单
+  global: globalPlaylist
 };
 
 

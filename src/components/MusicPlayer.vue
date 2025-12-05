@@ -1,8 +1,12 @@
 <template>
   <div class="music-card glass-card">
     <div class="header-btns">
-      <button class="btn" @click="openList" type="button" aria-label="打开音乐列表">音乐列表</button>
-      <button class="btn" @click="store.musicOpenState = false" type="button" aria-label="返回一言卡片">回到一言</button>
+      <button class="btn" @click="openList" type="button" aria-label="打开音乐列表">
+        {{ locale === 'en' ? 'Playlist' : '音乐列表' }}
+      </button>
+      <button class="btn" @click="store.musicOpenState = false" type="button" aria-label="返回一言卡片">
+        {{ locale === 'en' ? 'Back' : '回到一言' }}
+      </button>
     </div>
 
     <div class="controls">
@@ -36,9 +40,10 @@
         <div class="player-box">
           <APlayer
             v-if="songList.length > 0"
+            :key="locale"
             ref="aplayerRef"
             :audio="songList"
-            :lrcType="3"
+            :lrcType="locale === 'en' ? 0 : 3"
             :theme="'#efefef'"
             :autoplay="false"
             :listFolded="false"
@@ -50,7 +55,9 @@
             @loadedmetadata="onLoadedMetadata"
             @timeupdate="onTimeUpdate"
           />
-          <div v-else class="loading-tips">歌单加载中...</div>
+          <div v-else class="loading-tips">
+            {{ locale === 'en' ? 'Loading Playlist...' : '歌单加载中...' }}
+          </div>
         </div>
       </div>
     </div>
@@ -84,9 +91,12 @@
 import { ref, onMounted, watch, onBeforeUnmount } from 'vue';
 import { useGlobalStore } from '@/store';
 import { getPlayerList } from '@/api/music';
+import { musicConfig } from '@/config'; 
 import { Icon } from '@iconify/vue';
 import APlayer from '@worstone/vue-aplayer';
+import { useI18n } from 'vue-i18n'; 
 
+const { locale } = useI18n();
 const store = useGlobalStore();
 const songList = ref([]);
 const listVisible = ref(false);
@@ -103,18 +113,46 @@ watch(isPlaying, (val) => {
   else document.body.classList.remove('music-playing');
 });
 
-onMounted(async () => {
+const initMusicList = async () => {
+  songList.value = [];
+  currentSong.value = { 
+    name: locale.value === 'en' ? 'Loading...' : '加载中...', 
+    artist: '', 
+    cover: '', 
+    lrc: '' 
+  };
+  
   try {
-    const list = await getPlayerList();
+    let list = [];
+    if (locale.value === 'en') {
+      console.log('🎵 [Music] 切换至英文模式：加载静态歌单');
+      if (musicConfig.global && musicConfig.global.length > 0) {
+        list = JSON.parse(JSON.stringify(musicConfig.global));
+      }
+    } else {
+      console.log('🎵 [Music] 切换至中文模式：请求 API');
+      list = await getPlayerList();
+    }
+
     if (list && list.length > 0) {
       songList.value = list;
       updateBySongObject(list[0]);
     } else {
-      currentSong.value.name = "暂无音乐";
+      currentSong.value.name = locale.value === 'en' ? "No Music" : "暂无音乐";
     }
   } catch (e) {
-    currentSong.value.name = "加载失败";
+    console.error(e);
+    currentSong.value.name = locale.value === 'en' ? "Load Failed" : "加载失败";
   }
+};
+
+watch(locale, () => {
+  isPlaying.value = false;
+  initMusicList();
+});
+
+onMounted(() => {
+  initMusicList();
 });
 
 onBeforeUnmount(() => {
@@ -129,20 +167,24 @@ const onToggle = () => aplayerRef.value?.toggle();
 
 const getRealIndex = () => {
   if (!aplayerRef.value) return 0;
+
   if (aplayerRef.value.aplayer && typeof aplayerRef.value.aplayer.index === 'number') {
     return aplayerRef.value.aplayer.index;
   }
   if (typeof aplayerRef.value.playIndex === 'number') {
     return aplayerRef.value.playIndex;
   }
+  if (aplayerRef.value.currentMusic && songList.value.length) {
+     return songList.value.findIndex(s => s.url === aplayerRef.value.currentMusic.url);
+  }
   return 0;
 };
 
 const updateByIndex = () => {
   const index = getRealIndex();
-  const targetSong = songList.value[index];
-  
-  if (targetSong) {
+
+  if (index >= 0 && songList.value[index]) {
+    const targetSong = songList.value[index];
     if (targetSong.name !== currentSong.value.name) {
       updateBySongObject(targetSong);
       if (isPlaying.value) triggerNotify(); 
@@ -155,7 +197,7 @@ const updateBySongObject = (song) => {
     name: song.name || song.title,
     artist: song.artist || song.author,
     cover: song.cover || song.pic,
-    lrc: song.lrc
+    lrc: song.lrc || ''
   };
   parseLrc(song.lrc);
 };
@@ -180,7 +222,7 @@ const onLoadedMetadata = () => {
 
 const onTimeUpdate = (e) => {
   const index = getRealIndex();
-  if (songList.value[index] && songList.value[index].name !== currentSong.value.name) {
+  if (index >= 0 && songList.value[index] && songList.value[index].name !== currentSong.value.name) {
       updateByIndex();
   }
 
@@ -239,6 +281,7 @@ const parseLrc = async (lrcUrl) => {
 .music-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 9999; display: flex; justify-content: center; align-items: center; }
 .modal-card { width: 550px; min-height: 500px; max-width: 90vw; background: rgba(50, 50, 50, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0; position: relative; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); overflow: hidden; display: flex; flex-direction: column; .close-area { position: absolute; top: 15px; right: 15px; z-index: 10; cursor: pointer; padding: 5px; border-radius: 50%; color: #fff; &:hover { background: rgba(255,255,255,0.1); } } .player-box { flex: 1; display: flex; flex-direction: column; } .loading-tips { text-align: center; padding: 40px; color: #ddd; } }
 
+/* APlayer 样式穿透调整 */
 :deep(.aplayer) {
   background: transparent !important; box-shadow: none !important; margin: 0; width: 100%; font-family: sans-serif;
   .aplayer-body { background: transparent !important; padding: 15px 15px 0 15px; }
