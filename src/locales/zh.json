@@ -1,0 +1,39 @@
+{
+  "site": {
+    "title": "ovoxo.cc",
+    "description": "记录生活碎片、收集灵感糖果的小站，点进来就是朋友啦！"
+  },
+  "weather": {
+    "loading": "正在获取天气...",
+    "unknown": "未知城市"
+  },
+  "music": {
+    "open": "打开音乐播放器",
+    "list": "音乐列表",
+    "back": "回到一言",
+    "empty": "暂无音乐",
+    "loading": "歌单加载中...",
+    "fail": "加载失败",
+    "default_title": "未播放音乐"
+  },
+  "hitokoto": {
+    "loading": "正在获取一言...",
+    "fallback": "生活明朗，万物可爱"
+  },
+  "links": {
+    "title": "网站列表"
+  },
+  "footer": {
+    "theme_by": "Theme by",
+    "running": "已运行 {days} 天",
+    "visitors": "访问量 {count} 次"
+  },
+  "welcome": {
+    "morning": "早上好",
+    "noon": "中午好",
+    "afternoon": "下午好",
+    "evening": "晚上好",
+    "night": "夜深了",
+    "message": "，欢迎来到我的主页"
+  }
+}

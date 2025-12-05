@@ -1,0 +1,39 @@
+{
+  "site": {
+    "title": "ovoxo.cc",
+    "description": "A station for life fragments and inspiration sweets. Everyone here is a friend!"
+  },
+  "weather": {
+    "loading": "Loading weather...",
+    "unknown": "Unknown City"
+  },
+  "music": {
+    "open": "Open Music Player",
+    "list": "Playlist",
+    "back": "Back to Hitokoto",
+    "empty": "No Music",
+    "loading": "Loading Playlist...",
+    "fail": "Load Failed",
+    "default_title": "No music playing"
+  },
+  "hitokoto": {
+    "loading": "Loading Hitokoto...",
+    "fallback": "Life is bright, everything is cute."
+  },
+  "links": {
+    "title": "Website List"
+  },
+  "footer": {
+    "theme_by": "Theme by",
+    "running": "Running for {days} days",
+    "visitors": "Visitors: {count}"
+  },
+  "welcome": {
+    "morning": "Good Morning",
+    "noon": "Good Noon",
+    "afternoon": "Good Afternoon",
+    "evening": "Good Evening",
+    "night": "Good Night",
+    "message": ", Welcome to my homepage"
+  }
+}

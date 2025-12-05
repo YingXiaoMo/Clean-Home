@@ -1,6 +1,8 @@
 
 # Clean Home (极简个人主页)
 
+[🇺🇸 English Documentation](./README_EN.md)
+
 Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本项目源于对开源项目 [imsyy/home](https://github.com/imsyy/home) 的深度重构。在保留原版优秀的视觉设计同时，移除了繁重的 UI 框架依赖，重写了底层逻辑，实现了更轻量、更稳定、响应式更佳的体验。
 
 ## ✨ 核心特性
