@@ -35,13 +35,13 @@ Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本�
 | `ADMIN_PASSWORD` | 后台登录密码 | **后台管理** | ⚠️* | `password123` |
 | `BRANCH_NAME` | 目标分支 (默认 `main`) | **后台管理** | ❌ | `main` |
 
-> **⚠️ 注意**：带 `*` 的变量仅在使用 **Vercel** 或 **Cloudflare Pages** 部署时生效。**Docker 和 Nginx 纯静态部署不支持后台管理功能**（因为后台依赖 Serverless 函数）。
+> **⚠️ 注意**：`*` 标记的变量用于启用后台管理功能。如果不需要后台管理，可以不配置这些变量。
 
 ### 填写位置
 
 1.  **本地开发**: 创建 `.env` 文件填入。
 2.  **Vercel / Cloudflare Pages**: 在平台的 **Settings -> Environment Variables** 中填入。
-3.  **Docker**: 在 `docker run` 命令中使用 `-e` 参数传入（注意：Docker 部署仅需配置 `VITE_` 开头的变量）。
+3.  **Docker**: 在 `docker run` 命令中使用 `-e` 参数传入。
 
 ### 自建兜底 API 配置
 
@@ -121,14 +121,19 @@ docker build -t clean-home .
 
 **运行容器**:
 ```bash
-docker run -d -p 8080:80 \
+docker run -d -p 8080:3000 \
   -e VITE_AMAP_KEY="你的高德Key" \
   -e VITE_QWEATHER_KEY="你的和风Key" \
   -e VITE_QWEATHER_HOST="你的和风API HOST" \
   -e VITE_MUSIC_API="音乐API" \
+  # --- 后台管理配置 (可选) ---
+  -e GITHUB_TOKEN="ghp_xxxx" \
+  -e REPO_OWNER="yourname" \
+  -e REPO_NAME="Clean-Home" \
+  -e ADMIN_PASSWORD="password123" \
   --name my-home clean-home
 ```
-*注意：由于构建是在 Docker 内部进行的，环境变量需要在 build 阶段传入（修改 Dockerfile）或者在构建前修改 .env 文件。推荐直接修改本地 .env 文件后再 build。*
+*注意：环境变量需要在 build 阶段传入（修改 Dockerfile）或者在构建前修改 .env 文件。推荐直接修改本地 .env 文件后再 build。*
 
 ### 4. 服务器手动部署 (Nginx)
 

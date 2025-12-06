@@ -35,13 +35,13 @@ Regardless of your deployment method, please refer to the table below.
 | `ADMIN_PASSWORD` | Admin Login Password | **Admin Panel** | ⚠️* | `password123` |
 | `BRANCH_NAME` | Target Branch (default `main`) | **Admin Panel** | ❌ | `main` |
 
-> **⚠️ Note**: Variables marked with `*` are ONLY effective when deploying via **Vercel** or **Cloudflare Pages**. **Docker and Nginx static deployments DO NOT support the Admin Panel** (as it relies on Serverless Functions).
+> **⚠️ Note**: Variables marked with `*` are used to enable the Admin Panel. If you don't need the admin feature, you can skip them.
 
 ### Where to Configure
 
 1.  **Local Development**: Create a `.env` file.
 2.  **Vercel / Cloudflare Pages**: Configure in **Settings -> Environment Variables**.
-3.  **Docker**: Pass via `-e` in `docker run` command (Note: Docker deployments only need `VITE_` variables).
+3.  **Docker**: Pass via `-e` in `docker run` command.
 
 ### Custom Fallback API Configuration
 
@@ -116,12 +116,16 @@ docker build -t clean-home .
 
 **Run Container**:
 ```bash
-docker run -d -p 8080:80 \
+docker run -d -p 8080:3000 \
   -e VITE_AMAP_KEY="Your_Amap_Key" \
   -e VITE_QWEATHER_KEY="Your_QWeather_Key" \
   -e VITE_QWEATHER_HOST="Your_QWeather_API_HOST" \
   -e VITE_MUSIC_API="Music_API" \
-  # Optional, uses default if left blank
+  # --- Admin Panel Config (Optional) ---
+  -e GITHUB_TOKEN="ghp_xxxx" \
+  -e REPO_OWNER="yourname" \
+  -e REPO_NAME="Clean-Home" \
+  -e ADMIN_PASSWORD="password123" \
   --name my-home clean-home
 ```
 *Note: Since the build is done inside Docker, environment variables need to be passed during the build stage (modify Dockerfile) or verify .env file before build. It is recommended to modify the local .env file directly before building.*
