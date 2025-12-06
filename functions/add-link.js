@@ -3,9 +3,9 @@
  * 作用: 安全地调用 GitHub API 修改 nav.js 文件。
  * * 环境变量要求 (配置在 Cloudflare Pages Settings 中):
  * - GITHUB_TOKEN: 具有 repo 权限的 PAT
- * - REPO_OWNER: 仓库所有者
- * - REPO_NAME: 仓库名称
- * - BRANCH_NAME: (可选) 目标分支名称，例如 'feature-i18n'。如果未设置，默认为 'main'。
+ * - REPO_OWNER: 仓库所有者 (e.g., YingXiaoMo)
+ * - REPO_NAME: 仓库名称 (e.g., Clean-Home)
+ * - BRANCH_NAME: (可选) 目标分支名称，如果未设置，默认为 'main'。
  */
 
 // Cloudflare Workers 环境的 Base64 编码/解码工具
@@ -74,11 +74,10 @@ function updateFileContent(oldContent, newLink) {
 // -----------------------------------------------------------
 // 步骤 3: 提交新的文件内容
 // -----------------------------------------------------------
-async function commitNewFile(sha, newContent, env, branchName, newLink) { // <--- 关键修复: 接收 newLink
+async function commitNewFile(sha, newContent, env, branchName, newLink) {
     const GITHUB_API_URL = `https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}/contents/${FILE_PATH}`;
     const encodedContent = base64Encode(newContent);
     
-    // 关键修复: 使用传入的 newLink 对象
     const commitMessage = `feat: add link "${newLink.name}" to ${newLink.groupTitle} via web UI`;
 
     const commitData = {
@@ -108,34 +107,33 @@ async function commitNewFile(sha, newContent, env, branchName, newLink) { // <--
 }
 
 // -----------------------------------------------------------
-// Cloudflare Pages Functions 入口
+// Cloudflare Pages Functions 入口 (移除鉴权)
 // -----------------------------------------------------------
 export async function onRequest(context) {
     try {
         if (context.request.method !== 'POST') {
-            return new Response(JSON.stringify({ success: false, message: '只支持 POST 方法' }), { status: 405 });
+            return new Response(JSON.stringify({ success: false, message: '只支持 POST 请求' }), { status: 405 });
         }
 
-        const { name, url, icon, groupTitle } = await context.request.json();
+        const request = context.request;
         const env = context.env;
+        
+        // 🚀 鉴权逻辑已移除，不再检查 WRITE_SECRET
+        
+        const { name, url, icon, groupTitle } = await request.json();
 
-        // 1. 动态读取目标分支名
+        // 动态读取目标分支名
         const branchToUse = env.BRANCH_NAME || 'main'; 
 
         if (!name || !url || !groupTitle) {
             return new Response(JSON.stringify({ success: false, message: '缺少链接信息：name, url, 或 groupTitle' }), { status: 400 });
         }
         
-        // 定义 newLink
         const newLink = { name, url, icon, groupTitle };
 
-        // 2. 获取文件内容和 SHA
+        // 执行文件操作
         const { sha, content } = await getCurrentFile(env, branchToUse);
-
-        // 3. 修改文件内容
         const updatedContent = updateFileContent(content, newLink);
-
-        // 4. 提交新文件 (关键修复: 传递 newLink)
         await commitNewFile(sha, updatedContent, env, branchToUse, newLink);
 
         // 成功响应
