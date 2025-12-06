@@ -52,10 +52,7 @@ export default async function handler(request) {
 
         const navData = await request.json();
         const branchToUse = env.BRANCH_NAME || 'main';
-
         const { sha } = await getCurrentFile(env, branchToUse);
-        
-        // 构造新的 JS 文件内容
         const fileContent = `/**
  * 导航页配置文件
  * 由后台管理系统自动生成

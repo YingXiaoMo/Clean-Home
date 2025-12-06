@@ -1,7 +1,3 @@
-/**
- * Cloudflare Pages Function: /api/save-nav
- * 作用: 全量保存 nav.js
- */
 
 const base64Encode = (str) => btoa(unescape(encodeURIComponent(str)));
 const base64Decode = (b64) => decodeURIComponent(escape(atob(b64)));
