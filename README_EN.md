@@ -57,6 +57,27 @@ If you have your own, you can modify the fallback interface address in the `apiE
 
 All text, links, API toggles, and fallback configurations on the page are centrally managed in `src/config/index.js`.
 
+## 🎨 How to Find Icons
+
+This project comes with a wide range of popular icon libraries installed. You can use them directly in the **Admin Panel** or **Config Files**.
+
+1.  **Visit Icon Library**: Go to [Iconify Official Search](https://icon-sets.iconify.design/).
+2.  **Search**: Enter keywords (e.g., `home`, `github`, `robot`).
+3.  **Copy Name**: Click on an icon you like and copy its name (e.g., `ri:home-line` or `mdi:account`).
+4.  **Use It**: Paste the name into the "Icon" field in the Admin Panel.
+
+**✅ Supported Icon Prefixes:**
+
+*   `ri` (Remix Icon) - *Recommended*
+*   `mingcute` (MingCute Icon)
+*   `mdi` (Material Design Icons) - *Huge collection*
+*   `ph` (Phosphor Icons)
+*   `tabler` (Tabler Icons)
+*   `hugeicons` (HugeIcons)
+*   `carbon` (Carbon Icons)
+
+> *Note: Icons from uninstalled sets (e.g., `fa6-solid:`) will not display.*
+
 ## 🔌 API Interface Description
 
 ### Location & Weather Logic

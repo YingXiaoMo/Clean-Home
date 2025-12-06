@@ -57,8 +57,28 @@ Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本�
 
 ## 📝 内容定制指南
 
-
 所有页面上的文字、链接、API 开关和兜底配置，都在 `src/config/index.js` 中集中管理。
+
+## 🎨 如何查找图标
+
+本项目内置了大量流行的图标库，您可以在 **后台管理** 或 **配置文件** 中直接使用。
+
+1.  **访问图标库**：打开 [Iconify 官方搜索网站](https://icon-sets.iconify.design/)。
+2.  **搜索图标**：输入英文关键词（例如 `home`, `github`, `robot`）。
+3.  **获取名称**：点击喜欢的图标，复制其名称（例如 `ri:home-line` 或 `mdi:account`）。
+4.  **直接使用**：将复制的名称填入后台管理的“图标”输入框即可。
+
+**✅ 已支持的图标前缀（前缀即图标集名称）：**
+
+*   `ri` (Remix Icon) - *推荐，风格统一*
+*   `mingcute` (MingCute Icon) - *可爱风格*
+*   `mdi` (Material Design Icons) - *最全*
+*   `ph` (Phosphor Icons)
+*   `tabler` (Tabler Icons)
+*   `hugeicons` (HugeIcons)
+*   `carbon` (Carbon Icons)
+
+> *注意：如果使用了未安装的图标集前缀（例如 `fa6-solid:`），图标将无法显示。*
 
 
 ## 🔌 API 接口说明
