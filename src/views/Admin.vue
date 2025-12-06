@@ -442,11 +442,31 @@ const logout = () => {
   router.push('/');
 };
 
-onMounted(() => {
+onMounted(async () => {
   const token = localStorage.getItem('admin_token');
   if (token) {
-    isAuthenticated.value = true;
+    try {
+        const res = await fetch('/api/auth-check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-password': token
+            }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            isAuthenticated.value = true;
+        } else {
+            localStorage.removeItem('admin_token');
+            isAuthenticated.value = false;
+        }
+    } catch (e) {
+        // Network error or other issue during verification - safer to logout
+        localStorage.removeItem('admin_token');
+        isAuthenticated.value = false;
+    }
   }
+  
   if (!selectedGroupTitle.value && categoryList.value.length > 0) {
       selectedGroupTitle.value = categoryList.value[0].title;
   }
