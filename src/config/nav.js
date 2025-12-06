@@ -11,7 +11,8 @@ export const navData = [
       { name: "Canva", url: "https://www.canva.com", icon: "ri:brush-line" },
       { name: "Google 翻译", url: "https://translate.google.com", icon: "ri:translate" },
       { name: "Json格式化", url: "https://www.json.cn", icon: "ri:code-s-slash-line" }
-    ]
+    ,
+      { name: "哔哩哔哩", icon: "https://icons.duckduckgo.com/ip3/www.bilibili.com.ico", url: "https://www.bilibili.com/" }]
   },
   {
     title: "摸鱼专用",
