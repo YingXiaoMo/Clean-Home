@@ -1,0 +1,175 @@
+/**
+ * Cloudflare Pages Function: /api/manage-link
+ * 作用: 处理删除和移动/编辑链接的复杂逻辑。
+ */
+
+const base64Encode = (str) => btoa(unescape(encodeURIComponent(str)));
+const base64Decode = (b64) => decodeURIComponent(escape(atob(b64)));
+
+const FILE_PATH = 'src/config/nav.js';
+
+// -----------------------------------------------------------
+// 辅助函数 (获取文件)
+// -----------------------------------------------------------
+async function getCurrentFile(env, branchName) {
+    const GITHUB_API_URL = `https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}/contents/${FILE_PATH}?ref=${branchName}`;
+    if (!env.GITHUB_TOKEN) throw new Error("GitHub Token未配置。");
+    const response = await fetch(GITHUB_API_URL, {
+        headers: { 'Authorization': `token ${env.GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.com.v3+json', 'User-Agent': 'Cloudflare-Worker-Commit' },
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`无法获取文件：${response.status}. 详情: ${errorText}`);
+    }
+    const data = await response.json();
+    return { sha: data.sha, content: base64Decode(data.content) };
+}
+
+// -----------------------------------------------------------
+// 辅助函数 (提交文件)
+// -----------------------------------------------------------
+async function commitNewFile(sha, newContent, env, branchName, message) {
+    const GITHUB_API_URL = `https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}/contents/${FILE_PATH}`;
+    const encodedContent = base64Encode(newContent);
+    
+    const commitData = {
+        message: message,
+        content: encodedContent,
+        sha: sha,
+        branch: branchName 
+    };
+
+    const response = await fetch(GITHUB_API_URL, {
+        method: 'PUT',
+        headers: { 'Authorization': `token ${env.GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.com.v3+json', 'Content-Type': 'application/json', 'User-Agent': 'Cloudflare-Worker-Commit' },
+        body: JSON.stringify(commitData),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.json();
+        throw new Error(`GitHub 提交失败: ${response.status} - ${errorText.message}`);
+    }
+
+    return response.json();
+}
+
+// -----------------------------------------------------------
+// 步骤 2: 修改文件内容 (管理逻辑)
+// -----------------------------------------------------------
+function manageFileContent(oldContent, payload) {
+    const { action, oldGroupTitle, originalUrl, newGroupTitle, newLink } = payload;
+    
+    let contentToModify = oldContent;
+
+    // 1. 移除旧链接 (DELETE 或 MOVE 的第一步)
+    // 正则表达式：找到目标分组及其 items 数组
+    const groupRegex = new RegExp(`title:\\s*"${oldGroupTitle}"[\\s\\S]*?items:\\s*\\[([\\s\\S]*?)\\]`, 'm');
+    const groupMatch = contentToModify.match(groupRegex);
+    
+    if (!groupMatch) {
+        throw new Error(`无法找到目标分组 "${oldGroupTitle}" 或其 items 数组。`);
+    }
+
+    const itemsContent = groupMatch[1]; // 捕获到的 items 数组内部的字符串内容
+    
+    // 构造要查找的旧链接的正则 (使用 URL 作为最可靠的标识)
+    // 链接格式: { name: "...", url: "...", icon: "..." }
+    const linkRegex = new RegExp(`(\\{\\s*name:\\s*"[^"]*",\\s*icon:\\s*"[^"]*",\\s*url:\\s*"${originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[\\s\\S]*?\\})`);
+
+    const linkMatch = itemsContent.match(linkRegex);
+
+    if (!linkMatch) {
+        throw new Error(`无法在分组 "${oldGroupTitle}" 中找到 URL 为 "${originalUrl}" 的链接。`);
+    }
+
+    const linkString = linkMatch[0]; // 完整的旧链接对象字符串
+    
+    // 移除旧链接
+    const newItemsContent = itemsContent.replace(linkString, '').trim();
+
+    // 重新组合 items 数组内容 (处理逗号和空行)
+    let cleanedItemsContent = newItemsContent
+        .replace(/,\s*,/g, ',') // 移除多余的逗号
+        .replace(/,\s*$/m, '') // 移除末尾逗号
+        .replace(/^\s*,/m, '') // 移除开头逗号
+        .trim();
+        
+    // 替换回整个 items 数组内容
+    let finalContent = contentToModify.replace(itemsContent, cleanedItemsContent);
+    
+    // 2. 插入新链接 (仅限 MOVE/EDIT 操作)
+    if (action === 'MOVE') {
+        const targetTitle = newGroupTitle;
+
+        // 构造要插入的新链接字符串
+        const insertionLinkString = `,\n      { name: "${newLink.name}", icon: "${newLink.icon}", url: "${newLink.url}" }`;
+        
+        // 查找目标分组的 items 数组的结束位置
+        const insertionEndRegex = new RegExp(`(title:\\s*"${targetTitle}"[\\s\\S]*?items:\\s*\\[[\\s\\S]*?)\\]`, 'm');
+        const insertionMatch = finalContent.match(insertionEndRegex);
+        
+        if (!insertionMatch) {
+            throw new Error(`无法在移动操作中找到目标分组 "${targetTitle}"。`);
+        }
+
+        const targetItemsContent = insertionMatch[1];
+        const insertionPoint = insertionMatch.index + targetItemsContent.length;
+        
+        // 检查目标 items 数组是否为空，如果为空，则不需要开头的逗号。
+        const targetItemsInnerContent = finalContent.substring(finalContent.lastIndexOf('[', insertionPoint) + 1, insertionPoint).trim();
+        let contentToInsert = insertionLinkString;
+        
+        if (targetItemsInnerContent === '') {
+            contentToInsert = insertionLinkString.substring(1); 
+        }
+
+        finalContent = finalContent.slice(0, insertionPoint) + contentToInsert + finalContent.slice(insertionPoint);
+    }
+    
+    return finalContent;
+}
+
+
+// -----------------------------------------------------------
+// Cloudflare Pages Functions 入口
+// -----------------------------------------------------------
+export async function onRequest(context) {
+    try {
+        if (context.request.method !== 'POST') return new Response(JSON.stringify({ success: false, message: '只支持 POST 请求' }), { status: 405 });
+        
+        const payload = await context.request.json();
+        const { action, oldGroupTitle, originalUrl } = payload;
+        const env = context.env;
+
+        if (!action || !oldGroupTitle || !originalUrl) {
+            return new Response(JSON.stringify({ success: false, message: '管理操作缺少必要的字段 (action, oldGroupTitle, originalUrl)。' }), { status: 400 });
+        }
+        
+        const branchToUse = env.BRANCH_NAME || 'main'; 
+
+        // 执行文件操作
+        const { sha, content } = await getCurrentFile(env, branchToUse);
+        const updatedContent = manageFileContent(content, payload);
+        
+        let commitMessage = action === 'DELETE' ? `feat: delete link "${originalUrl}" from ${oldGroupTitle}` : `feat: move/edit link "${newLink.name}"`;
+        
+        const commitResponse = await commitNewFile(sha, updatedContent, env, branchToUse, commitMessage);
+
+        return new Response(JSON.stringify({ 
+            success: true, 
+            message: `链接${action === 'DELETE' ? '删除' : '修改/移动'}成功！请等待部署完成。`, 
+            // 🚀 返回 Commit URL 实现“直接访问”
+            commit_url: commitResponse.commit.html_url 
+        }), { 
+            status: 200, 
+            headers: { 'Content-Type': 'application/json' } 
+        });
+
+    } catch (error) {
+        console.error("Function Error:", error.message);
+        return new Response(JSON.stringify({ 
+            success: false, 
+            message: `操作失败: ${error.message}` 
+        }), { status: 500 });
+    }
+}
