@@ -1,3 +1,28 @@
+<div align="center">
+  <img src="./public/icon/logo.png" width="120" height="120" alt="Clean Home Logo">
+  <h1>Clean Home</h1>
+  <p>
+    <b>A minimal, fast, and beautiful personal homepage / start page.</b>
+  </p>
+  <p>基于 Vue 3 + Vite 重构的极简风格个人主页 | 导航页 | 仪表盘</p>
+
+  <p>
+    <a href="https://github.com/yingxiaomo/clean-home/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/yingxiaomo/clean-home?style=flat-square" alt="license" />
+    </a>
+    <a href="https://github.com/yingxiaomo/clean-home/stargazers">
+      <img src="https://img.shields.io/github/stars/yingxiaomo/clean-home?style=flat-square" alt="stars" />
+    </a>
+    <a href="https://github.com/yingxiaomo/clean-home/network/members">
+      <img src="https://img.shields.io/github/forks/yingxiaomo/clean-home?style=flat-square" alt="forks" />
+    </a>
+  </p>
+
+  <p>
+    <a href="https://ovoxo.cc">🔴 Live Demo (演示地址)</a>
+  </p>
+</div>
+
 # Clean Home (Minimalist Personal Homepage)
 
 [🔴 **Live Demo**](https://ovoxo.cc) | [🇨🇳 中文文档](./README.md)

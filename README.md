@@ -1,3 +1,30 @@
+<div align="center">
+  <img src="./public/icon/logo.png" width="120" height="120" alt="Clean Home Logo">
+  <h1>Clean Home</h1>
+  <p>
+    <b>A minimal, fast, and beautiful personal homepage / start page.</b>
+  </p>
+  <p>基于 Vue 3 + Vite 重构的极简风格个人主页 | 导航页 | 仪表盘</p>
+
+  <p>
+    <a href="https://github.com/yingxiaomo/clean-home/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/yingxiaomo/clean-home?style=flat-square" alt="license" />
+    </a>
+    <a href="https://github.com/yingxiaomo/clean-home/stargazers">
+      <img src="https://img.shields.io/github/stars/yingxiaomo/clean-home?style=flat-square" alt="stars" />
+    </a>
+    <a href="https://github.com/yingxiaomo/clean-home/network/members">
+      <img src="https://img.shields.io/github/forks/yingxiaomo/clean-home?style=flat-square" alt="forks" />
+    </a>
+  </p>
+
+  <p>
+    <a href="https://ovoxo.cc">🔴 Live Demo (演示地址)</a>
+  </p>
+</div>
+
+
+
 # Clean Home (极简个人主页)
 
 [🇺🇸 English Documentation](./README_EN.md)
@@ -27,7 +54,7 @@ Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本�
 | :--- | :--- | :--- | :--- | :--- |
 | `VITE_AMAP_KEY` | 高德 Web 服务 Key | **天气/定位** | ✅ | `你的高德Key` |
 | `VITE_QWEATHER_KEY` | 和风天气 Web 服务 Key | **天气** | ✅ | `你的和风Key` |
-| `VITE_QWEATHER_HOST`| 和风天气 API 域名 | **天气** | ✅ | `https://api.qweather.com` (免费版使用 `devapi`) |
+| `VITE_QWEATHER_HOST`| 和风天气 API 域名 | **天气** | ✅ | `https://api.qweather.com` |
 | `VITE_MUSIC_API` | Meting 音乐 API 地址 | **音乐播放器** | ❌ | `https://api.injahow.cn/meting/` |
 | `GITHUB_TOKEN` | GitHub Token (需 `repo` 权限) | **后台管理** | ⚠️* | `ghp_xxxxxxxx` |
 | `REPO_OWNER` | GitHub 用户名 | **后台管理** | ⚠️* | `yourname` |
