@@ -3,8 +3,8 @@
  * 作用: 安全地调用 GitHub API 修改 nav.js 文件。
  * * 环境变量要求 (配置在 Cloudflare Pages Settings 中):
  * - GITHUB_TOKEN: 具有 repo 权限的 PAT
- * - REPO_OWNER: 仓库所有者 (e.g., YingXiaoMo)
- * - REPO_NAME: 仓库名称 (e.g., Clean-Home)
+ * - REPO_OWNER: 仓库所有者
+ * - REPO_NAME: 仓库名称
  * - BRANCH_NAME: (可选) 目标分支名称，如果未设置，默认为 'main'。
  */
 
@@ -78,6 +78,7 @@ async function commitNewFile(sha, newContent, env, branchName, newLink) {
     const GITHUB_API_URL = `https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}/contents/${FILE_PATH}`;
     const encodedContent = base64Encode(newContent);
     
+    // 解决了 newLink is not defined 的作用域问题
     const commitMessage = `feat: add link "${newLink.name}" to ${newLink.groupTitle} via web UI`;
 
     const commitData = {
@@ -107,7 +108,7 @@ async function commitNewFile(sha, newContent, env, branchName, newLink) {
 }
 
 // -----------------------------------------------------------
-// Cloudflare Pages Functions 入口 (移除鉴权)
+// Cloudflare Pages Functions 入口 (无鉴权)
 // -----------------------------------------------------------
 export async function onRequest(context) {
     try {
@@ -117,8 +118,6 @@ export async function onRequest(context) {
 
         const request = context.request;
         const env = context.env;
-        
-        // 🚀 鉴权逻辑已移除，不再检查 WRITE_SECRET
         
         const { name, url, icon, groupTitle } = await request.json();
 
