@@ -16,35 +16,38 @@ Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本�
 - 🧭 **网址导航**：内置精美的网址导航页，支持分组折叠、搜索过滤，可作为浏览器主页使用。
 - 🖥️ **可视化后台**：提供 `/admin` 管理面板，支持在线修改站点配置、管理导航链接、上传图片，所有修改自动提交到 GitHub 仓库。
 
-## 🛠️ 配置与环境变量
+### ⚠️ 部署前的准备
 
-本项目使用环境变量来配置核心功能（天气、地图）以及后台管理系统。
+#### 1. 前端环境变量配置 (.env)
 
-### 环境变量列表
+在项目根目录下创建 `.env` 文件，填入关键的 API 密钥（用于前端天气、地图等功能）：
 
-无论你选择哪种部署方式，请参考下表准备环境变量。
+```ini
+# --- 地图与天气服务 (推荐配置) ---
+# 🚨 高德和和风 Key 优先级最高，配置后将获得最精准的数据
+VITE_AMAP_KEY="你的_高德_Web服务KEY"
+VITE_QWEATHER_KEY="你的_和风_Web服务KEY"
+VITE_QWEATHER_HOST="你的和风天气API_HOST"
 
-| 变量名 | 作用 | 适用功能 | 必填 | 示例 |
-| :--- | :--- | :--- | :--- | :--- |
-| `VITE_AMAP_KEY` | 高德 Web 服务 Key | **天气/定位** | ✅ | `你的高德Key` |
-| `VITE_QWEATHER_KEY` | 和风天气 Web 服务 Key | **天气** | ✅ | `你的和风Key` |
-| `VITE_QWEATHER_HOST`| 和风天气 API 域名 | **天气** | ✅ | `https://api.qweather.com` (免费版使用 `devapi`) |
-| `VITE_MUSIC_API` | Meting 音乐 API 地址 | **音乐播放器** | ❌ | `https://api.injahow.cn/meting/` |
-| `GITHUB_TOKEN` | GitHub Token (需 `repo` 权限) | **后台管理** | ⚠️* | `ghp_xxxxxxxx` |
-| `REPO_OWNER` | GitHub 用户名 | **后台管理** | ⚠️* | `yourname` |
-| `REPO_NAME` | 仓库名称 | **后台管理** | ⚠️* | `Clean-Home` |
-| `ADMIN_PASSWORD` | 后台登录密码 | **后台管理** | ⚠️* | `password123` |
-| `BRANCH_NAME` | 目标分支 (默认 `main`) | **后台管理** | ❌ | `main` |
+# --- 音乐 API 地址 (选填) ---
+VITE_MUSIC_API="http://[您的音乐API地址]" 
+```
 
-> **⚠️ 注意**：带 `*` 的变量仅在使用 **Vercel** 或 **Cloudflare Pages** 部署时生效。**Docker 和 Nginx 纯静态部署不支持后台管理功能**（因为后台依赖 Serverless 函数）。
+#### 2. 后台管理环境变量配置 (Cloudflare Pages / Vercel)
 
-### 填写位置
+本项目同时适配了 **Cloudflare Pages** 和 **Vercel** 的 Serverless 函数。要使用 `/admin` 后台管理功能，你必须在部署平台的后台配置以下环境变量（**注意：不要在 .env 文件中配置这些，必须在部署平台的 Dashboard 中配置**）：
 
-1.  **本地开发**: 创建 `.env` 文件填入。
-2.  **Vercel / Cloudflare Pages**: 在平台的 **Settings -> Environment Variables** 中填入。
-3.  **Docker**: 在 `docker run` 命令中使用 `-e` 参数传入（注意：Docker 部署仅需配置 `VITE_` 开头的变量）。
+| 变量名 | 说明 | 必填 | 示例 |
+| :--- | :--- | :--- | :--- |
+| `GITHUB_TOKEN` | GitHub Personal Access Token (需勾选 `repo` 权限) | ✅ | `ghp_xxxxxxxxxxxx` |
+| `REPO_OWNER` | 你的 GitHub 用户名 | ✅ | `yourname` |
+| `REPO_NAME` | 你的仓库名称 | ✅ | `Clean-Home` |
+| `ADMIN_PASSWORD` | 后台管理登录密码 | ✅ | `mypassword123` |
+| `BRANCH_NAME` | 目标分支 (默认 main) | ❌ | `main` |
 
-### 自建兜底 API 配置
+> **原理说明**：后台管理利用 Cloudflare Pages Functions 或 Vercel Edge Functions 运行。当你点击保存时，它会通过 GitHub API 直接修改你仓库中的 `src/config/site-data.json` 或 `nav.js` 文件并自动 Commit。数秒后，部署平台会检测到仓库更新并自动重新部署站点。
+
+#### 3. 自建兜底 API 配置
 
 如果在 `.env` 中没有配置 Key，或者免费 API 均失败，项目将使用我自建的兜底 API。
 如果有自己的，可以在 `src/config/index.js` 中的 `apiEndpoints` 对象里修改兜底接口地址。
