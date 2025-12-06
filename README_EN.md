@@ -163,6 +163,8 @@ Here is the key file and directory structure of the project:
 ├── public/          # Static assets 
 │   ├── font/        # Font resources
 │   └── icon/        # Logo and icons
+├── api/             # Vercel Serverless Functions (Admin Panel APIs)
+├── functions/api/   # Cloudflare Pages Functions (Admin Panel APIs)
 ├── src/
 │   ├── api/         # Frontend API encapsulation 
 │   ├── assets/

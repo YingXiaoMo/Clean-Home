@@ -171,6 +171,8 @@ docker run -d -p 8080:3000 \
 ├── public/          # 静态资源 
 │   ├── font/        # 字体资源
 │   └── icon/        # logo和头像
+├── api/             # Vercel Serverless Functions (后台管理 API)
+├── functions/api/   # Cloudflare Pages Functions (后台管理 API)
 ├── src/
 │   ├── api/         # 前端 API 封装 
 │   ├── assets/
