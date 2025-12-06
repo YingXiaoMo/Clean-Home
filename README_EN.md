@@ -13,7 +13,7 @@ Clean Home is a minimalist personal homepage refactored with Vue 3 + Vite. This 
 - 🚀 **Extreme Performance**: Built-in Gzip compression configuration, font preloading, non-blocking UI rendering for instant loading.
 - 📊 **Integrated Data Flow**: Supports **Busuanzi visitor statistics** and **automatic site running time calculation**, with configurable toggles.
 - 🧭 **Web Navigation**: Built-in beautiful website navigation page, supporting group folding and search filtering, which can be used as a browser homepage.
-- 🖥️ **Visual Admin Panel**: Provides an `/admin` management panel, supporting online modification of site configuration, management of navigation links, and image uploading. All changes are automatically committed to the GitHub repository.
+- 🖥️ **Visual Admin Panel**: Provides an `/admin` management panel, supporting online modification of site configuration, management of navigation links, image uploading, and **drag-and-drop sorting for both groups and links**. All changes are automatically committed to the GitHub repository.
 
 ## 🛠️ Configuration & Environment Variables
 
