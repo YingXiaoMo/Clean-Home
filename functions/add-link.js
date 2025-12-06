@@ -18,6 +18,7 @@ const FILE_PATH = 'src/config/nav.js';
 // 步骤 1: 获取文件当前内容和 SHA
 // -----------------------------------------------------------
 async function getCurrentFile(env, branchName) {
+    // 动态使用分支名称
     const GITHUB_API_URL = `https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}/contents/${FILE_PATH}?ref=${branchName}`;
     
     if (!env.GITHUB_TOKEN) {
@@ -43,22 +44,32 @@ async function getCurrentFile(env, branchName) {
 }
 
 // -----------------------------------------------------------
-// 步骤 2: 修改文件内容 (保持不变)
+// 步骤 2: 修改文件内容 (已优化正则，提高兼容性)
 // -----------------------------------------------------------
 function updateFileContent(oldContent, newLink) {
     const newLinkString = `,\n      { name: "${newLink.name}", icon: "${newLink.icon}", url: "${newLink.url}" }`;
     const targetGroupTitle = newLink.groupTitle;
     
-    const itemsEndRegex = new RegExp(`(title: "${targetGroupTitle}",\\s*icon: "[^"]*",\\s*items: \\[\\s*[\\s\\S]*?)\\]`, 'm');
+    // 🚀 优化的正则表达式：
+    // 匹配 'title: "TITLE"' 之后到 'items: [' 之间的所有内容，不严格要求 icon 字段，
+    // 并在 items 数组结束后，捕获插入点之前的文本。
+    const itemsEndRegex = new RegExp(
+        // 匹配从文件开头到目标 title，非贪婪
+        `([\\s\\S]*?title:\\s*"${targetGroupTitle}"[\\s\\S]*?items:\\s*\\[[\\s\\S]*?)\\]`, 
+        'm'
+    );
+    
     const match = oldContent.match(itemsEndRegex);
 
     if (!match) {
-        throw new Error(`文件格式不匹配或未找到标题为 "${targetGroupTitle}" 的分组。`);
+        // 确保返回详细信息
+        throw new Error(`文件内容匹配失败。请检查分组标题是否为 "${targetGroupTitle}"，或 nav.js 文件格式是否被破坏。`);
     }
 
     const insertionPoint = match.index + match[1].length;
     let contentToInsert = newLinkString;
     
+    // 检查 items 数组是否为空，如果为空，则不需要开头的逗号。
     const contentBeforeClosingBracket = oldContent.substring(oldContent.lastIndexOf('[', insertionPoint) + 1, insertionPoint).trim();
 
     if (contentBeforeClosingBracket === '') {
@@ -77,7 +88,6 @@ async function commitNewFile(sha, newContent, env, branchName, newLink) {
     const GITHUB_API_URL = `https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}/contents/${FILE_PATH}`;
     const encodedContent = base64Encode(newContent);
     
-    // 解决了 newLink is not defined 的作用域问题
     const commitMessage = `feat: add link "${newLink.name}" to ${newLink.groupTitle} via web UI`;
 
     const commitData = {
@@ -91,7 +101,7 @@ async function commitNewFile(sha, newContent, env, branchName, newLink) {
         method: 'PUT',
         headers: {
             'Authorization': `token ${env.GITHUB_TOKEN}`,
-            'Accept': 'application/vnd.github.v3+json',
+            'Accept': 'application/vnd.github.com.v3+json', // 修正 Accept 头，使用 GitHub 标准 V3
             'Content-Type': 'application/json',
             'User-Agent': 'Cloudflare-Worker-Commit',
         },
@@ -147,7 +157,7 @@ export async function onRequest(context) {
         console.error("Function Error:", error.message);
         return new Response(JSON.stringify({ 
             success: false, 
-            message: `操作失败，请检查 Serverless Function 日志: ${error.message}` 
+            message: `操作失败: ${error.message}` 
         }), { status: 500 });
     }
 }
