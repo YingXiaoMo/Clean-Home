@@ -174,9 +174,10 @@ Here is the key file and directory structure of the project:
 │   ├── config/      # Global configuration
 │   ├── store/       # Pinia state management
 │   └── utils/       # Utility functions
+├── server.js        # Node.js Backend Service (for Docker/PM2 deployments, supports Admin API)
 ├── .env             # Environment variable configuration file (needs manual creation)
-├── Dockerfile       # Docker build configuration
-├── nginx.conf       # Nginx server configuration 
+├── Dockerfile       # Docker build configuration (based on Node.js, includes frontend build and backend service)
+├── nginx.conf       # Nginx server configuration (for static deployments reference only, no longer Docker core)
 ├── index.html       # Entry file
 └── vite.config.js   # Vite configuration file
 ```
