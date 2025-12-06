@@ -96,131 +96,29 @@ app.post('/api/save-config', checkAuth, async (req, res) => {
     }
 });
 
-// 2. 添加链接 (add-link)
-app.post('/api/add-link', checkAuth, async (req, res) => {
+// 2. 保存导航数据 (save-nav) - 全量覆盖
+app.post('/api/save-nav', checkAuth, async (req, res) => {
     try {
-        const { links, newLink, groupTitle } = req.body;
-        if (!groupTitle || (!links && !newLink)) return res.status(400).json({ success: false, message: '缺少参数' });
         const branch = process.env.BRANCH_NAME || 'main';
         const filePath = 'src/config/nav.js';
-        const { sha, content } = await getFile(filePath, branch);
+        const { sha } = await getFile(filePath, branch);
         
-        // 兼容处理：支持 links 数组 或 单个 newLink 对象
-        const targetLinks = links || [newLink];
-        const newLinksString = targetLinks.map(link => 
-            `,
-      { name: "${link.name}", icon: "${link.icon}", url: "${link.url}" }`
-        ).join('');
+        const navData = req.body;
+        const fileContent = `/**
+ * 导航页配置文件
+ * 由后台管理系统自动生成
+ */
+export const navData = ${JSON.stringify(navData, null, 2)};
+`;
 
-        const itemsEndRegex = new RegExp(`([\s\S]*?title:\s*"${groupTitle}"[\s\S]*?items:\s*\[[\s\S]*?)\]`, 'm');
-        const match = content.match(itemsEndRegex);
-        if (!match) throw new Error(`未找到分组: "${groupTitle}"`);
-
-        const insertionPoint = match.index + match[1].length;
-        let contentToInsert = newLinksString;
-        const contentBefore = content.substring(content.lastIndexOf('[', insertionPoint) + 1, insertionPoint).trim();
-        if (contentBefore === '') contentToInsert = contentToInsert.substring(1);
-        
-        const updatedContent = content.slice(0, insertionPoint) + contentToInsert + content.slice(insertionPoint);
-        const msg = `feat: add ${targetLinks.length} link(s) to ${groupTitle} via web UI`;
-        const result = await updateFile(filePath, updatedContent, msg, sha, branch);
-        res.json({ success: true, message: `成功添加 ${targetLinks.length} 个链接！`, commit_url: result.commit.html_url });
+        const result = await updateFile(filePath, fileContent, "chore: update navigation data via web UI", sha, branch);
+        res.json({ success: true, message: '导航配置保存成功！', commit_url: result.commit.html_url });
     } catch (e) {
         res.status(500).json({ success: false, message: e.message });
     }
 });
 
-// 3. 添加分组 (add-group)
-app.post('/api/add-group', checkAuth, async (req, res) => {
-    try {
-        const { title, icon } = req.body;
-        if (!title) return res.status(400).json({ success: false, message: '缺少分组名称' });
-        const branch = process.env.BRANCH_NAME || 'main';
-        const filePath = 'src/config/nav.js';
-        const { sha, content } = await getFile(filePath, branch);
-        
-        const newGroupObject = `,
-  {
-    title: "${title}",
-    icon: "${icon || 'ri:folder-line'}",
-    items: [
-
-    ]
-  }`;
-        const navDataArrayEndRegex = new RegExp(`(export\s+const\s+navData\s*=\s*\[[\s\S]*?)\]\s*;`, 'm');
-        const match = content.match(navDataArrayEndRegex);
-        if (!match) throw new Error(`nav.js 文件格式不匹配`);
-
-        const insertionPoint = match.index + match[1].length;
-        let contentToInsert = newGroupObject;
-        const arrayStart = content.lastIndexOf('[', insertionPoint);
-        const contentBefore = content.substring(arrayStart + 1, insertionPoint).trim();
-        if (contentBefore === '') contentToInsert = contentToInsert.substring(1);
-
-        const updatedContent = content.slice(0, insertionPoint) + contentToInsert + content.slice(insertionPoint);
-        const msg = `feat: add new folder "${title}" via web UI`;
-        const result = await updateFile(filePath, updatedContent, msg, sha, branch);
-        res.json({ success: true, message: `文件夹 "${title}" 添加成功！`, commit_url: result.commit.html_url });
-    } catch (e) {
-        res.status(500).json({ success: false, message: e.message });
-    }
-});
-
-// 4. 管理链接 (manage-link)
-app.post('/api/manage-link', checkAuth, async (req, res) => {
-    try {
-        const { action, oldGroupTitle, originalUrl, newGroupTitle, newLink } = req.body;
-        const branch = process.env.BRANCH_NAME || 'main';
-        const filePath = 'src/config/nav.js';
-        const { sha, content } = await getFile(filePath, branch);
-        let updatedContent = content;
-        let msg = '';
-
-        // Helper functions
-        const deleteLink = (txt, group, url) => {
-            const groupRegex = new RegExp(`(title:\s*"${group}"[\s\S]*?items:\s*\[)([\s\S]*?)(\])`, 'm');
-            const m = txt.match(groupRegex);
-            if (!m) throw new Error(`未找到分组: "${group}"`);
-            const escapedUrl = url.replace(/[.*+?^${}()|[\\\]/g, '\\$&');
-            const itemRegex = new RegExp(`\s*{\s*name:[\s\S]*?url:\s*["']${escapedUrl}["']\s*\},?`, 'g');
-            if (!itemRegex.test(m[2])) throw new Error(`链接不存在: ${url}`);
-            let newItems = m[2].replace(itemRegex, '').replace(/^\s*[
-]/gm, '');
-            return txt.replace(m[0], m[1] + newItems + m[3]);
-        };
-
-        const addLink = (txt, group, link) => {
-            const linkStr = `,
-      { name: "${link.name}", icon: "${link.icon}", url: "${link.url}" }`;
-            const itemsEndRegex = new RegExp(`([\s\S]*?title:\s*"${group}"[\s\S]*?items:\s*\[[\s\S]*?)\]`, 'm');
-            const m = txt.match(itemsEndRegex);
-            if (!m) throw new Error(`未找到分组: "${group}"`);
-            const ins = m.index + m[1].length;
-            let toIns = linkStr;
-            const pre = txt.substring(txt.lastIndexOf('[', ins) + 1, ins).trim();
-            if (pre === '') toIns = toIns.substring(1);
-            return txt.slice(0, ins) + toIns + txt.slice(ins);
-        };
-
-        if (action === 'DELETE') {
-            updatedContent = deleteLink(content, oldGroupTitle, originalUrl);
-            msg = `chore: delete link ${originalUrl} from ${oldGroupTitle}`;
-        } else if (action === 'MOVE') {
-            updatedContent = deleteLink(content, oldGroupTitle, originalUrl);
-            updatedContent = addLink(updatedContent, newGroupTitle, newLink);
-            msg = `chore: update link ${newLink.name}`;
-        } else {
-            return res.status(400).json({ success: false, message: 'Unknown action' });
-        }
-
-        const result = await updateFile(filePath, updatedContent, msg, sha, branch);
-        res.json({ success: true, message: '操作成功', commit_url: result.commit.html_url });
-    } catch (e) {
-        res.status(500).json({ success: false, message: e.message });
-    }
-});
-
-// 5. 上传文件 (upload)
+// 3. 上传文件 (upload)
 app.post('/api/upload', checkAuth, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ success: false, message: '未找到文件' });
@@ -229,7 +127,7 @@ app.post('/api/upload', checkAuth, upload.single('file'), async (req, res) => {
         const timestamp = new Date().getTime();
         const safeName = req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
         const fileName = `${timestamp}-${safeName}`;
-        const filePath = `public/uploads/${fileName}`;
+        const filePath = `public/uploads/${fileName}`; 
         const publicUrl = `/uploads/${fileName}`;
         const contentBase64 = req.file.buffer.toString('base64');
         const branch = process.env.BRANCH_NAME || 'main';

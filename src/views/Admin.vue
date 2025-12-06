@@ -6,6 +6,7 @@
       <button @click="login" class="login-btn">{{ t('admin.login.btn') }}</button>
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
+
     <div v-else class="dashboard">
       <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none;" accept="image/*" />
       <div class="dashboard-header">
@@ -15,6 +16,7 @@
            <button @click="logout" class="logout-btn"><Icon icon="ri:logout-box-r-line" /> {{ t('admin.dashboard.logout') }}</button>
         </div>
       </div>
+      
       <div class="management-ui glass-card-large">
         <div class="tabs">
           <button :class="{ active: currentTab === 'manage' }" @click="currentTab = 'manage'">
@@ -30,8 +32,24 @@
              <Icon icon="ri:settings-3-line" /> {{ t('admin.config.title') }}
           </button>
         </div>
+
+        <!-- Global Save Bar for Navigation Tabs -->
+        <Transition name="slide-up">
+            <div v-if="['manage', 'add', 'folder'].includes(currentTab) && hasUnsavedChanges" class="global-save-bar">
+                <div class="save-bar-content">
+                    <span class="unsaved-text"><Icon icon="ri:error-warning-fill" /> 有未保存的更改</span>
+                    <button class="save-all-btn" @click="saveNavData" :disabled="isSaving">
+                        <Icon v-if="isSaving" icon="ri:loader-4-line" class="spinner-sm" />
+                        <span v-else>立即保存所有更改</span>
+                    </button>
+                </div>
+            </div>
+        </Transition>
+
         <div class="tab-content">
+             <!-- CONFIG TAB (Independent Save) -->
              <div v-if="currentTab === 'config'" class="config-container">
+                <!-- Basic Info -->
                 <div class="config-section">
                    <h3 class="section-title">{{ t('admin.config.site_info') }}</h3>
                    <div class="form-grid">
@@ -59,6 +77,8 @@
                       </div>
                    </div>
                 </div>
+
+                <!-- Background -->
                 <div class="config-section">
                    <h3 class="section-title">{{ t('admin.config.bg_settings') }}</h3>
                    <div class="form-grid">
@@ -75,6 +95,8 @@
                       </div>
                    </div>
                 </div>
+
+                <!-- Social Links -->
                 <div class="config-section">
                    <h3 class="section-title">{{ t('admin.config.social') }}</h3>
                    <div v-for="(item, idx) in siteData.socialLinks" :key="'social-'+idx" class="link-row-card glass-card-sm compact">
@@ -98,6 +120,8 @@
                       <Icon icon="ri:add-line" /> {{ t('admin.add.add_row') }}
                    </button>
                 </div>
+
+                 <!-- Site Links (Footer) -->
                 <div class="config-section">
                    <h3 class="section-title">{{ t('admin.config.footer_links') }}</h3>
                    <div v-for="(item, idx) in siteData.siteLinks" :key="'site-'+idx" class="link-row-card glass-card-sm compact">
@@ -120,6 +144,7 @@
                       <Icon icon="ri:add-line" /> {{ t('admin.add.add_row') }}
                    </button>
                 </div>
+
                 <div class="form-actions sticky-bottom">
                     <button class="save-btn" @click="onSaveConfig" :disabled="isSaving">
                        <Icon v-if="isSaving" icon="ri:loader-4-line" class="spinner-sm" />
@@ -127,17 +152,25 @@
                     </button>
                 </div>
              </div>
+
+             <!-- MANAGE LINKS TAB -->
              <div v-if="currentTab === 'manage'" class="manage-container">
                 <Transition name="fade-content" mode="out-in">
                   <div v-if="!currentEditLink" :key="'list'">
                     <div class="manage-group" v-for="group in categoryList" :key="group.title">
                       <div class="group-header clickable" @click="toggleGroup(group)">
                         <span class="group-title-text">{{ group.title }} ({{ group.items.length }})</span>
-                        <Icon icon="ri:arrow-down-s-line" class="arrow" :class="{ 'rotated': group.collapsed }"/>
+                        <div class="group-actions" @click.stop>
+                             <button class="action-btn icon-only delete" style="padding:4px;" @click="deleteGroupLocal(group)" title="删除整个分组">
+                                <Icon icon="ri:delete-bin-2-line" width="16" />
+                             </button>
+                             <Icon icon="ri:arrow-down-s-line" class="arrow" :class="{ 'rotated': group.collapsed }"/>
+                        </div>
                       </div>
+                      
                       <div class="group-list-wrapper" :class="{ 'is-collapsed': group.collapsed }">
                          <div class="group-list-inner">
-                            <div class="link-item-manage" v-for="(item, idx) in group.items" :key="item.url">
+                            <div class="link-item-manage" v-for="(item, idx) in group.items" :key="item.url + idx">
                                 <div class="item-left-wrapper">
                                     <div class="manage-icon-box">
                                         <Icon v-if="!isUrl(item.icon)" :icon="item.icon || 'ri:link'" width="20" height="20" />
@@ -152,7 +185,7 @@
                                     <button class="action-btn icon-only edit" @click="startEdit(group.title, item, idx)" :title="t('admin.manage.edit')">
                                         <Icon icon="ri:pencil-line" width="18" />
                                     </button>
-                                    <button class="action-btn icon-only delete" @click="onManageLink('DELETE', group.title, item, idx)" :title="t('admin.manage.delete')">
+                                    <button class="action-btn icon-only delete" @click="deleteLinkLocal(group.title, idx)" :title="t('admin.manage.delete')">
                                         <Icon icon="ri:delete-bin-line" width="18" />
                                     </button>
                                 </div>
@@ -161,6 +194,7 @@
                       </div>
                     </div>
                   </div>
+                  
                   <div v-else :key="'edit-form'" class="edit-form-wrapper">
                       <h4 class="form-title">{{ t('admin.manage.edit_form_title', { name: currentEditLink.name }) }}</h4>
                       <div class="form-item">
@@ -185,6 +219,7 @@
                             <img v-else :src="currentEditLink.icon" :alt="t('admin.manage.preview')" width="24" height="24" class="favicon-img" />
                         </span>
                       </div>
+                      
                       <div class="form-item">
                         <label>{{ t('admin.manage.group') }} *</label>
                         <select v-model="currentEditLink.newGroupTitle" class="glass-input high-contrast-select">
@@ -197,10 +232,10 @@
                           </option>
                         </select>
                       </div>
+
                       <div class="form-actions">
-                        <button class="save-btn" @click="onManageLink('MOVE', currentEditLink.oldGroupTitle, currentEditLink.originalItem, currentEditLink.originalIndex)" :disabled="isSaving">
-                            <Icon v-if="isSaving" icon="ri:loader-4-line" class="spinner-sm" />
-                            <span v-else>{{ t('admin.manage.save') }}</span>
+                        <button class="save-btn" @click="confirmEditLocal" :disabled="isSaving">
+                            <span>确认修改 (暂存)</span>
                         </button>
                         <button class="action-btn cancel" @click="currentEditLink = null" :disabled="isSaving">
                             {{ t('admin.manage.cancel') }}
@@ -209,14 +244,18 @@
                   </div>
                 </Transition>
              </div>
+
+             <!-- ADD LINKS TAB -->
              <div v-if="currentTab === 'add'" class="add-form-container">
               <h3 class="form-title">{{ t('admin.add.title') }}</h3>
+              
               <div class="form-item">
                 <label>{{ t('admin.add.group') }} *</label>
                 <select v-model="selectedGroupTitle" class="glass-input high-contrast-select">
                   <option v-for="(group, index) in categoryList" :key="index" :value="group.title">{{ group.title }}</option>
                 </select>
               </div>
+
               <div class="dynamic-rows">
                 <div v-for="(link, index) in newLinks" :key="index" class="link-row-card glass-card-sm">
                   <div class="row-header">
@@ -225,6 +264,7 @@
                       <Icon icon="ri:close-line" />
                     </button>
                   </div>
+                  
                   <div class="row-inputs-flex">
                     <div class="input-col name">
                       <input type="text" v-model="link.name" class="glass-input" :placeholder="t('admin.add.ph_name')" />
@@ -248,16 +288,18 @@
                   </div>
                 </div>
               </div>
+
               <div class="form-actions">
                 <button class="action-btn add-row" @click="addLinkRow">
                   <Icon icon="ri:add-line" /> {{ t('admin.add.add_row') }}
                 </button>
-                <button class="action-btn save" @click="onSubmitLinks" :disabled="isSaving || !selectedGroupTitle">
-                  <Icon v-if="isSaving" icon="ri:loader-4-line" class="spinner-sm" />
-                  <span v-else>{{ t('admin.add.submit', { count: validLinksCount }) }}</span>
+                <button class="action-btn save" @click="addLinksLocal" :disabled="!selectedGroupTitle">
+                  <span >添加至列表 (暂存)</span>
                 </button>
               </div>
             </div>
+
+            <!-- ADD FOLDER TAB -->
             <div v-if="currentTab === 'folder'" class="add-form-container">
                <h3 class="form-title">{{ t('admin.folder.title') }}</h3>
                <div class="form-item"><label>{{ t('admin.folder.name') }}</label><input type="text" v-model="newFolder.title" class="glass-input" :placeholder="t('admin.folder.ph_name')" /></div>
@@ -271,17 +313,20 @@
                         </button>
                    </div>
                </div>
-               <div class="form-actions"><button class="action-btn save" @click="onSubmitNewFolder" :disabled="isSaving">{{ t('admin.folder.submit') }}</button></div>
+               <div class="form-actions"><button class="action-btn save" @click="addGroupLocal">创建分组 (暂存)</button></div>
             </div>
+            
             <p v-if="saveMessage" :class="['message', isSaving ? 'info' : 'error']">{{ saveMessage }}</p>
             <p v-if="successCommitUrl" class="message success">
                 {{ t('admin.msg.success') }} <a :href="successCommitUrl" target="_blank">{{ t('admin.msg.view_commit') }}</a>
             </p>
+
         </div>
       </div>
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
@@ -289,26 +334,42 @@ import { Icon } from '@iconify/vue';
 import { useI18n } from 'vue-i18n';
 import { navData } from '@/config/nav';
 import initialSiteData from '@/config/site-data.json'; 
+
 const router = useRouter();
 const { t } = useI18n();
+
+// Auth State
 const password = ref('');
 const isAuthenticated = ref(false);
 const error = ref('');
+
+// UI State
 const currentTab = ref('manage');
 const categoryList = ref(JSON.parse(JSON.stringify(navData)));
 const siteData = ref(JSON.parse(JSON.stringify(initialSiteData))); 
 const isSaving = ref(false);
 const saveMessage = ref('');
 const successCommitUrl = ref('');
+const hasUnsavedChanges = ref(false); // Dirty flag
+
+// Upload State
 const fileInput = ref(null);
 const currentUploadTarget = ref(null); 
 const isUploading = ref(false);
+
+// Manage State
 const currentEditLink = ref(null);
+
+// Add Links State
 const newLinks = ref([{ name: '', url: '', icon: 'ri:link' }]);
 const selectedGroupTitle = ref(navData[0]?.title || ''); 
 const isUrl = (str) => str && (str.startsWith('http://') || str.startsWith('https://'));
 const validLinksCount = computed(() => newLinks.value.filter(l => l.name && l.url).length);
+
+// Add Folder State
 const newFolder = ref({ title: '', icon: 'ri:folder-line' });
+
+// --- Auth Methods ---
 const login = () => {
   if (password.value) {
     localStorage.setItem('admin_token', password.value);
@@ -316,11 +377,13 @@ const login = () => {
     error.value = '';
   }
 };
+
 const logout = () => {
   localStorage.removeItem('admin_token');
   isAuthenticated.value = false;
   router.push('/');
 };
+
 onMounted(() => {
   const token = localStorage.getItem('admin_token');
   if (token) {
@@ -330,7 +393,10 @@ onMounted(() => {
       selectedGroupTitle.value = categoryList.value[0].title;
   }
 });
+
+// --- Helper Methods ---
 const toggleGroup = (g) => g.collapsed = !g.collapsed;
+
 const detectIcon = (link) => {
     if (!link.url.startsWith('http') || link.url.length < 8) return;
     try {
@@ -341,6 +407,7 @@ const detectIcon = (link) => {
         img.onload = () => { link.icon = fav; };
     } catch(e) {}
 };
+
 const addLinkRow = () => {
     newLinks.value.push({ name: '', url: '', icon: 'ri:link' });
     nextTick(() => {
@@ -349,18 +416,24 @@ const addLinkRow = () => {
     });
 };
 const removeLinkRow = (idx) => newLinks.value.splice(idx, 1);
+
+// --- Upload Methods ---
 const triggerUpload = (obj, key) => {
     currentUploadTarget.value = { obj, key };
     fileInput.value.click();
 };
+
 const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
+
     isUploading.value = true;
-    saveMessage.value = t('admin.msg.uploading'); 
+    saveMessage.value = t('admin.msg.uploading');
     successCommitUrl.value = '';
+
     const formData = new FormData();
     formData.append('file', file);
+
     try {
         const res = await fetch('/api/upload', {
             method: 'POST',
@@ -370,6 +443,7 @@ const handleFileUpload = async (event) => {
             body: formData
         });
         const data = await res.json();
+        
         if (res.ok) {
             if (currentUploadTarget.value) {
                 currentUploadTarget.value.obj[currentUploadTarget.value.key] = data.url;
@@ -390,27 +464,106 @@ const handleFileUpload = async (event) => {
         currentUploadTarget.value = null;
     }
 };
+
+// --- Local Data Management (The new "Staging" Logic) ---
+
+const deleteLinkLocal = (groupTitle, itemIndex) => {
+    if(!confirm('确定删除此链接吗？此操作将处于暂存状态，需点击顶部保存按钮生效。')) return;
+    const group = categoryList.value.find(g => g.title === groupTitle);
+    if (group) {
+        group.items.splice(itemIndex, 1);
+        hasUnsavedChanges.value = true;
+    }
+};
+
+const deleteGroupLocal = (group) => {
+    if(!confirm(`确定删除分组 "${group.title}" 及其所有链接吗？`)) return;
+    const idx = categoryList.value.findIndex(g => g.title === group.title);
+    if(idx !== -1) {
+        categoryList.value.splice(idx, 1);
+        hasUnsavedChanges.value = true;
+    }
+};
+
+const startEdit = (groupTitle, item, index) => {
+    currentEditLink.value = {
+        originalItem: item, 
+        originalIndex: index, 
+        oldGroupTitle: groupTitle,
+        name: item.name, 
+        url: item.url, 
+        icon: item.icon, 
+        newGroupTitle: groupTitle, 
+    };
+};
+
+const confirmEditLocal = () => {
+    const edit = currentEditLink.value;
+    const oldGroup = categoryList.value.find(g => g.title === edit.oldGroupTitle);
+    const newGroup = categoryList.value.find(g => g.title === edit.newGroupTitle);
+    
+    if (oldGroup && newGroup) {
+        // Remove from old
+        oldGroup.items.splice(edit.originalIndex, 1);
+        // Add to new
+        newGroup.items.push({
+            name: edit.name,
+            url: edit.url,
+            icon: edit.icon
+        });
+        hasUnsavedChanges.value = true;
+        currentEditLink.value = null;
+    }
+};
+
+const addLinksLocal = () => {
+    const group = categoryList.value.find(g => g.title === selectedGroupTitle.value);
+    const valid = newLinks.value.filter(l => l.name && l.url);
+    if (group && valid.length > 0) {
+        group.items.push(...valid);
+        newLinks.value = [{ name: '', url: '', icon: 'ri:link' }]; // Reset
+        hasUnsavedChanges.value = true;
+        alert(`已暂存 ${valid.length} 个链接，请记得点击顶部的保存按钮！`);
+    }
+};
+
+const addGroupLocal = () => {
+    if (!newFolder.value.title) return;
+    categoryList.value.push({
+        title: newFolder.value.title,
+        icon: newFolder.value.icon || 'ri:folder-line',
+        items: []
+    });
+    newFolder.value = { title: '', icon: 'ri:folder-line' };
+    hasUnsavedChanges.value = true;
+    alert('分组已暂存，请记得点击顶部的保存按钮！');
+};
+
+// --- API Methods ---
 const getHeaders = () => ({
     'Content-Type': 'application/json',
     'x-admin-password': localStorage.getItem('admin_token') || ''
 });
-const onSubmitLinks = async () => {
-    const validLinks = newLinks.value.filter(l => l.name && l.url);
-    if (validLinks.length === 0) return;
+
+// The BIG Save Button Handler
+const saveNavData = async () => {
+    if (!hasUnsavedChanges.value) return;
     isSaving.value = true;
-    saveMessage.value = t('admin.msg.submitting');
+    saveMessage.value = t('admin.msg.saving');
     successCommitUrl.value = '';
+    
     try {
-        const res = await fetch('/api/add-link', {
+        const res = await fetch('/api/save-nav', {
             method: 'POST',
             headers: getHeaders(),
-            body: JSON.stringify({ links: validLinks, groupTitle: selectedGroupTitle.value })
+            body: JSON.stringify(categoryList.value)
         });
         const data = await res.json();
         if (res.ok) {
             successCommitUrl.value = data.commit_url;
-            saveMessage.value = ''; 
-            setTimeout(() => { newLinks.value = [{ name: '', url: '', icon: 'ri:link' }]; }, 2000);
+            saveMessage.value = '';
+            hasUnsavedChanges.value = false;
+            // Optional: Reload or show big success toast
         } else {
              if (res.status === 401) {
                  saveMessage.value = t('admin.msg.unauth');
@@ -418,64 +571,13 @@ const onSubmitLinks = async () => {
                  saveMessage.value = `Error: ${data.message}`;
              }
         }
-    } catch (e) { saveMessage.value = `${t('admin.msg.network_error')}: ${e.message}`; } finally { isSaving.value = false; }
-};
-const onSubmitNewFolder = async () => {
-    if (!newFolder.value.title) return;
-    isSaving.value = true;
-    successCommitUrl.value = '';
-    try {
-        const res = await fetch('/api/add-group', {
-            method: 'POST',
-            headers: getHeaders(),
-            body: JSON.stringify(newFolder.value)
-        });
-        const data = await res.json();
-        if (res.ok) {
-            successCommitUrl.value = data.commit_url;
-            setTimeout(() => { window.location.reload(); }, 2500);
-        } else {
-             if (res.status === 401) {
-                 saveMessage.value = t('admin.msg.unauth');
-             } else {
-                 saveMessage.value = `Error: ${data.message}`;
-             }
-        }
-    } catch (e) { saveMessage.value = `${t('admin.msg.network_error')}: ${e.message}`; } finally { isSaving.value = false; }
-};
-const startEdit = (groupTitle, item, index) => {
-    currentEditLink.value = {
-        originalItem: item, originalIndex: index, oldGroupTitle: groupTitle,
-        name: item.name, url: item.url, icon: item.icon, newGroupTitle: groupTitle, 
-    };
-};
-const onManageLink = async (action, groupTitle, item, index) => {
-    isSaving.value = true;
-    successCommitUrl.value = '';
-    saveMessage.value = action === 'DELETE' ? t('admin.msg.deleting') : t('admin.msg.saving');
-    let payload = { action: action, oldGroupTitle: groupTitle, originalIndex: index, originalUrl: item.url };
-    if (action === 'MOVE') {
-        payload.newGroupTitle = currentEditLink.value.newGroupTitle;
-        payload.newLink = { name: currentEditLink.value.name, url: currentEditLink.value.url, icon: currentEditLink.value.icon };
+    } catch (e) { 
+        saveMessage.value = `${t('admin.msg.network_error')}: ${e.message}`; 
+    } finally { 
+        isSaving.value = false; 
     }
-    try {
-        const response = await fetch('/api/manage-link', { 
-            method: 'POST', headers: getHeaders(), body: JSON.stringify(payload)
-        });
-        const data = await response.json();
-        if (response.ok) {
-            successCommitUrl.value = data.commit_url;
-            saveMessage.value = ''; 
-            setTimeout(() => { window.location.reload(); }, 2500); 
-        } else {
-            if (response.status === 401) {
-                 saveMessage.value = t('admin.msg.unauth');
-            } else {
-                 saveMessage.value = `Error: ${data.message}`;
-            }
-        }
-    } catch (error) { saveMessage.value = `${t('admin.msg.network_error')}: ${error.message}`; } finally { isSaving.value = false; }
 };
+
 const onSaveConfig = async () => {
     isSaving.value = true;
     saveMessage.value = t('admin.msg.saving');
@@ -499,7 +601,9 @@ const onSaveConfig = async () => {
         }
     } catch (e) { saveMessage.value = `${t('admin.msg.network_error')}: ${e.message}`; } finally { isSaving.value = false; }
 };
+
 </script>
+
 <style scoped lang="scss">
 .admin-container {
   min-height: 100vh;
@@ -511,6 +615,7 @@ const onSaveConfig = async () => {
   color: white;
   font-family: sans-serif;
 }
+
 .glass-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -523,6 +628,7 @@ const onSaveConfig = async () => {
   width: 300px;
   margin-top: 100px;
 }
+
 .glass-card-large {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -531,6 +637,7 @@ const onSaveConfig = async () => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   min-height: 400px;
 }
+
 .glass-input {
   width: 100%;
   padding: 10px 12px;
@@ -541,12 +648,14 @@ const onSaveConfig = async () => {
   outline: none;
   &:focus { border-color: #4facfe; }
 }
+
 .high-contrast-select {
   appearance: none; -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='24' height='24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 10px center;
   option { background-color: #333; color: #fff; }
 }
+
 .login-btn {
   padding: 10px;
   background: #4facfe;
@@ -557,18 +666,23 @@ const onSaveConfig = async () => {
   font-weight: bold;
   &:hover { background: #3099f1; }
 }
+
 .error-msg { color: #ff4d4f; font-size: 0.9rem; }
+
 .dashboard {
   width: 90%;
   max-width: 1000px;
 }
+
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
+
 .header-actions { display: flex; gap: 15px; }
+
 .preview-btn, .logout-btn {
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.1);
@@ -580,11 +694,13 @@ const onSaveConfig = async () => {
   display: flex; align-items: center; gap: 5px;
   &:hover { background: rgba(255,255,255,0.2); }
 }
+
 .tabs {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
 }
+
 .tabs button {
   padding: 10px 20px;
   background: rgba(255,255,255,0.05);
@@ -597,6 +713,39 @@ const onSaveConfig = async () => {
   &.active { background: #4facfe; color: white; }
   &:hover:not(.active) { background: rgba(255,255,255,0.1); }
 }
+
+/* Global Save Bar */
+.global-save-bar {
+    background: rgba(255, 165, 0, 0.15);
+    border: 1px solid rgba(255, 165, 0, 0.4);
+    color: #ffcc00;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
+.save-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    justify-content: space-between;
+}
+.unsaved-text { display: flex; align-items: center; gap: 8px; font-weight: bold; }
+.save-all-btn {
+    background: #4facfe;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+    &:hover:not(:disabled) { background: #3099f1; }
+}
+
+/* Copied Styles */
 .manage-container { padding: 0 10px; }
 .group-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -609,9 +758,12 @@ const onSaveConfig = async () => {
     &:hover { background: rgba(255,255,255,0.05); }
 }
 .group-title-text { font-size: 1rem; color: #fff; font-weight: 500; }
+.group-actions { display: flex; align-items: center; gap: 10px; }
 .arrow { transition: transform 0.3s; color: rgba(255,255,255,0.6); &.rotated { transform: rotate(-90deg); } }
+
 .group-list-wrapper { display: grid; grid-template-rows: 1fr; transition: 0.3s; &.is-collapsed { grid-template-rows: 0fr; } }
 .group-list-inner { overflow: hidden; }
+
 .link-item-manage { 
     display: flex; justify-content: space-between; align-items: center; 
     padding: 10px 15px; margin-bottom: 8px; 
@@ -623,6 +775,7 @@ const onSaveConfig = async () => {
     .link-info { display: flex; flex-direction: column; overflow: hidden; flex: 1; .link-name { color: #fff; margin-bottom: 2px; } .link-url { font-size: 0.8rem; color: #888; } }
     .actions { display: flex; gap: 8px; }
 }
+
 .action-btn {
   padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s;
   &.save { background: #4facfe; color: #fff; &:hover { background: #3099f1; } }
@@ -632,15 +785,19 @@ const onSaveConfig = async () => {
   &.cancel { background: rgba(255,255,255,0.15); color: #fff; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
+
 .edit-form-wrapper, .add-form-container { padding: 20px; background: rgba(0,0,0,0.2); border-radius: 8px; }
 .form-title { margin-bottom: 20px; color: #fff; }
 .form-item { margin-bottom: 15px; label { display: block; margin-bottom: 5px; color: #ccc; font-size: 0.9rem; } }
 .form-actions { display: flex; gap: 15px; margin-top: 25px; }
 .save-btn { flex: 1; padding: 12px; background: #4facfe; border: none; border-radius: 6px; color: #fff; font-weight: bold; cursor: pointer; }
+
 .dynamic-rows { 
     max-height: 400px; 
     overflow-y: auto; 
     padding-right: 5px; 
+
+    /* 自定义滚动条 */
     &::-webkit-scrollbar { width: 6px; height: 6px; }
     &::-webkit-scrollbar-track { background: transparent; }
     &::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
@@ -651,7 +808,10 @@ const onSaveConfig = async () => {
 .delete-btn { background: none; border: none; color: #ff4d4f; cursor: pointer; }
 .row-inputs-flex { display: flex; gap: 10px; flex-wrap: wrap; .input-col { flex: 1; min-width: 120px; } }
 .icon-input-wrapper { position: relative; input { padding-right: 30px; } .icon-preview-box { position: absolute; right: 8px; top: 10px; pointer-events: none; } }
+
 .message { margin-top: 20px; padding: 10px; border-radius: 6px; &.info { color: #ffd700; background: rgba(255,215,0,0.1); } &.error { color: #ff4d4f; background: rgba(255,0,0,0.1); } &.success { color: #76ff7a; background: rgba(30,200,30,0.1); } }
+
+/* Config Form Styles */
 .config-container { padding: 0 10px; padding-bottom: 60px; }
 .config-section { margin-bottom: 30px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; }
 .section-title { margin-bottom: 15px; border-left: 3px solid #4facfe; padding-left: 10px; color: #fff; font-size: 1.1rem; }
@@ -660,6 +820,8 @@ const onSaveConfig = async () => {
 textarea.glass-input { resize: vertical; min-height: 80px; }
 .link-row-card.compact { padding: 10px; }
 .sticky-bottom { position: sticky; bottom: 0; background: #1a1a1a; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); box-shadow: 0 -5px 15px rgba(0,0,0,0.5); z-index: 10; margin-top: 20px; }
+
+/* Upload Styles */
 .input-with-upload { display: flex; align-items: center; gap: 8px; position: relative; width: 100%; }
 .input-with-upload .glass-input { flex: 1; }
 .upload-trigger-btn {
@@ -670,4 +832,8 @@ textarea.glass-input { resize: vertical; min-height: 80px; }
 }
 .upload-trigger-btn.inside { position: absolute; right: 35px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; z-index: 10; &:hover { background: none; color: #4facfe; } }
 .upload-trigger-btn.icon-small { padding: 4px; width: 30px; height: 30px; }
+
+/* Transitions */
+.slide-up-enter-active, .slide-up-leave-active { transition: all 0.3s ease; }
+.slide-up-enter-from, .slide-up-leave-to { opacity: 0; transform: translateY(-20px); }
 </style>
