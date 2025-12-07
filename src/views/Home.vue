@@ -9,7 +9,7 @@
         </div>
         <img :src="themeConfig.siteLogo" alt="Logo" class="loading-logo" />
         <div class="loader"></div>
-        <span class="loading-text">{{ t('loading') }}</span>
+        <span class="loading-text">加载中...</span>
         <div class="font-preload-helper">
           <span style="font-family: 'Pacifico-Regular'">preload</span>
           <span style="font-family: 'UnidreamLED'">preload</span>
@@ -67,7 +67,6 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useGlobalStore } from '@/store';
-import { useI18n } from 'vue-i18n';
 import { themeConfig } from '@/config';
 import Background from '@/components/Background.vue';
 import InfoCard from '@/components/InfoCard.vue';
@@ -81,7 +80,6 @@ import { Icon } from '@iconify/vue';
 import WelcomeNotify from '@/components/WelcomeNotify.vue';
 import NavModal from '@/components/NavModal.vue'; 
 const store = useGlobalStore();
-const { t } = useI18n();
 const musicNotifyShow = ref(false);
 let notifyTimer = null;
 const particleCount = 50; 

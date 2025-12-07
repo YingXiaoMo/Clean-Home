@@ -1,11 +1,11 @@
 <template>
   <div class="admin-container">
     <div v-if="!isAuthenticated" class="login-box glass-card">
-      <h2>{{ t('admin.login.title') }}</h2>
-      <input type="password" v-model="password" :placeholder="t('admin.login.placeholder')" @keyup.enter="login" class="glass-input">
+      <h2>后台管理登录</h2>
+      <input type="password" v-model="password" placeholder="请输入管理员密码" @keyup.enter="login" class="glass-input">
       <button @click="login" class="login-btn" :disabled="isLoggingIn">
           <Icon v-if="isLoggingIn" icon="ri:loader-4-line" class="spinner-sm" />
-          <span v-else>{{ t('admin.login.btn') }}</span>
+          <span v-else>登录</span>
       </button>
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
@@ -13,26 +13,26 @@
     <div v-else class="dashboard">
       <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none;" accept="image/*" />
       <div class="dashboard-header">
-        <h2 style="color:white;">{{ t('admin.dashboard.title') }}</h2>
+        <h2 style="color:white;">网站内容管理</h2>
         <div class="header-actions">
-           <a href="/" target="_blank" class="preview-btn"><Icon icon="ri:external-link-line" /> {{ t('admin.dashboard.visit') }}</a>
-           <button @click="logout" class="logout-btn"><Icon icon="ri:logout-box-r-line" /> {{ t('admin.dashboard.logout') }}</button>
+           <a href="/" target="_blank" class="preview-btn"><Icon icon="ri:external-link-line" /> 访问前台</a>
+           <button @click="logout" class="logout-btn"><Icon icon="ri:logout-box-r-line" /> 退出登录</button>
         </div>
       </div>
       
       <div class="management-ui glass-card-large">
         <div class="tabs">
           <button :class="{ active: currentTab === 'manage' }" @click="currentTab = 'manage'">
-             <Icon icon="ri:edit-2-line" /> {{ t('admin.tabs.manage') }}
+             <Icon icon="ri:edit-2-line" /> 管理链接
           </button>
           <button :class="{ active: currentTab === 'add' }" @click="currentTab = 'add'">
-             <Icon icon="ri:add-line" /> {{ t('admin.tabs.add') }}
+             <Icon icon="ri:add-line" /> 添加链接
           </button>
           <button :class="{ active: currentTab === 'folder' }" @click="currentTab = 'folder'">
-             <Icon icon="ri:folder-add-line" /> {{ t('admin.tabs.folder') }}
+             <Icon icon="ri:folder-add-line" /> 添加分组
           </button>
           <button :class="{ active: currentTab === 'config' }" @click="currentTab = 'config'">
-             <Icon icon="ri:settings-3-line" /> {{ t('admin.config.title') }}
+             <Icon icon="ri:settings-3-line" /> 全局配置
           </button>
         </div>
 
@@ -54,25 +54,25 @@
              <div v-if="currentTab === 'config'" class="config-container">
                 <!-- Basic Info -->
                 <div class="config-section">
-                   <h3 class="section-title">{{ t('admin.config.site_info') }}</h3>
+                   <h3 class="section-title">基本信息</h3>
                    <div class="form-grid">
                       <div class="form-item">
-                        <label>{{ t('admin.config.site_title') }}</label>
+                        <label>站点标题</label>
                         <input type="text" v-model="siteData.siteConfig.title" class="glass-input" />
                       </div>
                       <div class="form-item">
-                        <label>{{ t('admin.config.site_author') }}</label>
+                        <label>站长名称</label>
                         <input type="text" v-model="siteData.siteConfig.author" class="glass-input" />
                       </div>
                       <div class="form-item full-width">
-                        <label>{{ t('admin.config.site_desc') }}</label>
+                        <label>站点描述</label>
                         <textarea v-model="siteData.siteConfig.description" class="glass-input" rows="2"></textarea>
                       </div>
                       <div class="form-item">
-                        <label>{{ t('admin.config.site_logo') }}</label>
+                        <label>Logo 路径</label>
                         <div class="input-with-upload">
                             <input type="text" v-model="siteData.themeConfig.siteLogo" class="glass-input" />
-                            <button class="upload-trigger-btn" @click="triggerUpload(siteData.themeConfig, 'siteLogo')" :title="t('admin.upload.tooltip')">
+                            <button class="upload-trigger-btn" @click="triggerUpload(siteData.themeConfig, 'siteLogo')" title="上传图片">
                                  <Icon v-if="isUploading && currentUploadTarget?.obj === siteData.themeConfig" icon="ri:loader-4-line" class="spinner-sm" />
                                  <Icon v-else icon="ri:upload-cloud-2-line" />
                             </button>
@@ -83,17 +83,17 @@
 
                 <!-- Background -->
                 <div class="config-section">
-                   <h3 class="section-title">{{ t('admin.config.bg_settings') }}</h3>
+                   <h3 class="section-title">背景设置</h3>
                    <div class="form-grid">
                       <div class="form-item">
-                        <label>{{ t('admin.config.bg_type') }}</label>
+                        <label>背景类型 (local/api)</label>
                         <select v-model="siteData.themeConfig.background.type" class="glass-input high-contrast-select">
                           <option value="local">Local (本地)</option>
                           <option value="api">API (在线)</option>
                         </select>
                       </div>
                       <div class="form-item" v-if="siteData.themeConfig.background.type === 'api'">
-                        <label>{{ t('admin.config.bg_api') }}</label>
+                        <label>背景 API 地址</label>
                         <input type="text" v-model="siteData.themeConfig.background.apiURL" class="glass-input" />
                       </div>
                    </div>
@@ -101,7 +101,7 @@
 
                 <!-- Social Links -->
                 <div class="config-section">
-                   <h3 class="section-title">{{ t('admin.config.social') }}</h3>
+                   <h3 class="section-title">社交链接 (首页左下)</h3>
                    <div v-for="(item, idx) in siteData.socialLinks" :key="'social-'+idx" class="link-row-card glass-card-sm compact">
                       <div class="row-inputs-flex">
                           <div class="input-col"><input type="text" v-model="item.name" class="glass-input" placeholder="Name" /></div>
@@ -120,13 +120,13 @@
                       </div>
                    </div>
                    <button class="action-btn add-row" @click="siteData.socialLinks.push({name:'',icon:'',url:'',tip:''})">
-                      <Icon icon="ri:add-line" /> {{ t('admin.add.add_row') }}
+                      <Icon icon="ri:add-line" /> 添加一行
                    </button>
                 </div>
 
                  <!-- Site Links (Footer) -->
                 <div class="config-section">
-                   <h3 class="section-title">{{ t('admin.config.footer_links') }}</h3>
+                   <h3 class="section-title">底部链接 (首页右下)</h3>
                    <div v-for="(item, idx) in siteData.siteLinks" :key="'site-'+idx" class="link-row-card glass-card-sm compact">
                       <div class="row-inputs-flex">
                           <div class="input-col"><input type="text" v-model="item.name" class="glass-input" placeholder="Name" /></div>
@@ -144,14 +144,14 @@
                       </div>
                    </div>
                    <button class="action-btn add-row" @click="siteData.siteLinks.push({name:'',icon:'',link:''})">
-                      <Icon icon="ri:add-line" /> {{ t('admin.add.add_row') }}
+                      <Icon icon="ri:add-line" /> 添加一行
                    </button>
                 </div>
 
                 <div class="form-actions sticky-bottom">
                     <button class="save-btn" @click="onSaveConfig" :disabled="isSaving">
                        <Icon v-if="isSaving" icon="ri:loader-4-line" class="spinner-sm" />
-                       <span v-else>{{ t('admin.config.save_all') }}</span>
+                       <span v-else>保存所有配置</span>
                     </button>
                 </div>
              </div>
@@ -212,10 +212,10 @@
                                                 </div>
                                             </div>
                                             <div class="actions">
-                                                <button class="action-btn icon-only edit" @click="startEdit(group.title, item, idx)" :title="t('admin.manage.edit')">
+                                                <button class="action-btn icon-only edit" @click="startEdit(group.title, item, idx)" title="编辑/移动">
                                                     <Icon icon="ri:pencil-line" width="18" />
                                                 </button>
-                                                <button class="action-btn icon-only delete" @click="deleteLinkLocal(group.title, idx)" :title="t('admin.manage.delete')">
+                                                <button class="action-btn icon-only delete" @click="deleteLinkLocal(group.title, idx)" title="删除">
                                                     <Icon icon="ri:delete-bin-line" width="18" />
                                                 </button>
                                             </div>
@@ -229,32 +229,32 @@
                   </div>
                   
                   <div v-else :key="'edit-form'" class="edit-form-wrapper">
-                      <h4 class="form-title">{{ t('admin.manage.edit_form_title', { name: currentEditLink.name }) }}</h4>
+                      <h4 class="form-title">编辑链接：{{ currentEditLink.name }}</h4>
                       <div class="form-item">
-                        <label>{{ t('admin.manage.name') }} *</label>
+                        <label>名称 *</label>
                         <input type="text" v-model="currentEditLink.name" class="glass-input" />
                       </div>
                       <div class="form-item">
-                        <label>{{ t('admin.manage.url') }} *</label>
+                        <label>链接地址 (URL) *</label>
                         <input type="url" v-model="currentEditLink.url" class="glass-input" />
                       </div>
                       <div class="form-item icon-group">
-                        <label>{{ t('admin.manage.icon') }}</label>
+                        <label>图标 (Iconify代码 或 URL)</label>
                         <div class="input-with-upload">
                              <input type="text" v-model="currentEditLink.icon" class="glass-input" />
-                             <button class="upload-trigger-btn" @click="triggerUpload(currentEditLink, 'icon')" :title="t('admin.upload.tooltip')">
+                             <button class="upload-trigger-btn" @click="triggerUpload(currentEditLink, 'icon')" title="上传图片">
                                  <Icon v-if="isUploading && currentUploadTarget?.obj === currentEditLink" icon="ri:loader-4-line" class="spinner-sm" />
                                  <Icon v-else icon="ri:upload-cloud-2-line" />
                              </button>
                         </div>
                         <span v-if="currentEditLink.icon" class="icon-preview">
                             <Icon v-if="!isUrl(currentEditLink.icon)" :icon="currentEditLink.icon" width="24" />
-                            <img v-else :src="currentEditLink.icon" :alt="t('admin.manage.preview')" width="24" height="24" class="favicon-img" />
+                            <img v-else :src="currentEditLink.icon" alt="图标预览" width="24" height="24" class="favicon-img" />
                         </span>
                       </div>
                       
                       <div class="form-item">
-                        <label>{{ t('admin.manage.group') }} *</label>
+                        <label>移动到分组 *</label>
                         <select v-model="currentEditLink.newGroupTitle" class="glass-input high-contrast-select">
                           <option 
                             v-for="(group, index) in categoryList" 
@@ -271,7 +271,7 @@
                             <span>确认修改 (暂存)</span>
                         </button>
                         <button class="action-btn cancel" @click="currentEditLink = null" :disabled="isSaving">
-                            {{ t('admin.manage.cancel') }}
+                            取消
                         </button>
                       </div>
                   </div>
@@ -280,10 +280,10 @@
 
              <!-- ADD LINKS TAB -->
              <div v-if="currentTab === 'add'" class="add-form-container">
-              <h3 class="form-title">{{ t('admin.add.title') }}</h3>
+              <h3 class="form-title">批量添加链接</h3>
               
               <div class="form-item">
-                <label>{{ t('admin.add.group') }} *</label>
+                <label>选择目标分组 *</label>
                 <select v-model="selectedGroupTitle" class="glass-input high-contrast-select">
                   <option v-for="(group, index) in categoryList" :key="index" :value="group.title">{{ group.title }}</option>
                 </select>
@@ -292,23 +292,23 @@
               <div class="dynamic-rows">
                 <div v-for="(link, index) in newLinks" :key="index" class="link-row-card glass-card-sm">
                   <div class="row-header">
-                    <span class="row-label">{{ t('admin.add.row_label', { index: index + 1 }) }}</span>
-                    <button v-if="newLinks.length > 1" class="delete-btn" @click="removeLinkRow(index)" :title="t('admin.manage.delete')">
+                    <span class="row-label">链接 #{{ index + 1 }}</span>
+                    <button v-if="newLinks.length > 1" class="delete-btn" @click="removeLinkRow(index)" title="删除">
                       <Icon icon="ri:close-line" />
                     </button>
                   </div>
                   
                   <div class="row-inputs-flex">
                     <div class="input-col name">
-                      <input type="text" v-model="link.name" class="glass-input" :placeholder="t('admin.add.ph_name')" />
+                      <input type="text" v-model="link.name" class="glass-input" placeholder="网站名称" />
                     </div>
                     <div class="input-col url">
-                      <input type="url" v-model="link.url" class="glass-input" :placeholder="t('admin.add.ph_url')" @input="detectIcon(link)" />
+                      <input type="url" v-model="link.url" class="glass-input" placeholder="链接 (https://...)" @input="detectIcon(link)" />
                     </div>
                     <div class="input-col icon">
                       <div class="icon-input-wrapper input-with-upload">
-                        <input type="text" v-model="link.icon" class="glass-input" :placeholder="t('admin.add.ph_icon')" style="padding-right: 70px;" />
-                        <button class="upload-trigger-btn inside" @click="triggerUpload(link, 'icon')" :title="t('admin.upload.tooltip')">
+                        <input type="text" v-model="link.icon" class="glass-input" placeholder="图标 (自动识别)" style="padding-right: 70px;" />
+                        <button class="upload-trigger-btn inside" @click="triggerUpload(link, 'icon')" title="上传图片">
                                  <Icon v-if="isUploading && currentUploadTarget?.obj === link" icon="ri:loader-4-line" class="spinner-sm" />
                                  <Icon v-else icon="ri:upload-cloud-2-line" />
                         </button>
@@ -324,7 +324,7 @@
 
               <div class="form-actions">
                 <button class="action-btn add-row" @click="addLinkRow">
-                  <Icon icon="ri:add-line" /> {{ t('admin.add.add_row') }}
+                  <Icon icon="ri:add-line" /> 添加一行
                 </button>
                 <button class="action-btn save" @click="addLinksLocal" :disabled="!selectedGroupTitle">
                   <span >添加至列表 (暂存)</span>
@@ -334,13 +334,13 @@
 
             <!-- ADD FOLDER TAB -->
             <div v-if="currentTab === 'folder'" class="add-form-container">
-               <h3 class="form-title">{{ t('admin.folder.title') }}</h3>
-               <div class="form-item"><label>{{ t('admin.folder.name') }}</label><input type="text" v-model="newFolder.title" class="glass-input" :placeholder="t('admin.folder.ph_name')" /></div>
+               <h3 class="form-title">添加新分组（文件夹）</h3>
+               <div class="form-item"><label>分组名称</label><input type="text" v-model="newFolder.title" class="glass-input" placeholder="例如：我的项目" /></div>
                <div class="form-item">
-                   <label>{{ t('admin.folder.icon') }}</label>
+                   <label>图标 (Iconify代码)</label>
                    <div class="input-with-upload">
-                        <input type="text" v-model="newFolder.icon" class="glass-input" :placeholder="t('admin.folder.ph_icon')" />
-                        <button class="upload-trigger-btn" @click="triggerUpload(newFolder, 'icon')" :title="t('admin.upload.tooltip')">
+                        <input type="text" v-model="newFolder.icon" class="glass-input" placeholder="例如：ri:folder-3-line" />
+                        <button class="upload-trigger-btn" @click="triggerUpload(newFolder, 'icon')" title="上传图片">
                              <Icon v-if="isUploading && currentUploadTarget?.obj === newFolder" icon="ri:loader-4-line" class="spinner-sm" />
                              <Icon v-else icon="ri:upload-cloud-2-line" />
                         </button>
@@ -351,7 +351,7 @@
             
             <p v-if="saveMessage" :class="['message', isSaving ? 'info' : 'error']">{{ saveMessage }}</p>
             <p v-if="successCommitUrl" class="message success">
-                {{ t('admin.msg.success') }} <a :href="successCommitUrl" target="_blank">{{ t('admin.msg.view_commit') }}</a>
+                ✅ 操作成功！已提交变更至 GitHub，正在自动部署。 <a :href="successCommitUrl" target="_blank">查看提交</a>
             </p>
 
         </div>
@@ -364,13 +364,11 @@
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
-import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
 import { navData } from '@/config/nav';
 import initialSiteData from '@/config/site-data.json'; 
 
 const router = useRouter();
-const { t } = useI18n();
 
 // Auth State
 const password = ref('');
@@ -427,10 +425,10 @@ const login = async () => {
           localStorage.setItem('admin_token', password.value);
           isAuthenticated.value = true;
       } else {
-          error.value = data.message || t('admin.login.error');
+          error.value = data.message || '密码错误';
       }
   } catch (e) {
-      error.value = t('admin.msg.network_error');
+      error.value = '网络错误';
   } finally {
       isLoggingIn.value = false;
   }
@@ -510,7 +508,7 @@ const handleFileUpload = async (event) => {
     if (!file) return;
 
     isUploading.value = true;
-    saveMessage.value = t('admin.msg.uploading');
+    saveMessage.value = '正在上传...';
     successCommitUrl.value = '';
 
     const formData = new FormData();
@@ -533,13 +531,13 @@ const handleFileUpload = async (event) => {
             saveMessage.value = ''; 
         } else {
              if (res.status === 401) {
-                 saveMessage.value = t('admin.msg.unauth');
+                 saveMessage.value = '未授权：管理员密码错误';
              } else {
                  saveMessage.value = `Error: ${data.message}`;
              }
         }
     } catch (e) {
-        saveMessage.value = `${t('admin.msg.network_error')}: ${e.message}`;
+        saveMessage.value = `网络错误: ${e.message}`;
     } finally {
         isUploading.value = false;
         event.target.value = ''; 
@@ -631,7 +629,7 @@ const getHeaders = () => ({
 const saveNavData = async () => {
     if (!hasUnsavedChanges.value) return;
     isSaving.value = true;
-    saveMessage.value = t('admin.msg.saving');
+    saveMessage.value = '正在保存...';
     successCommitUrl.value = '';
     
     try {
@@ -648,13 +646,13 @@ const saveNavData = async () => {
             // Optional: Reload or show big success toast
         } else {
              if (res.status === 401) {
-                 saveMessage.value = t('admin.msg.unauth');
+                 saveMessage.value = '未授权：管理员密码错误';
              } else {
                  saveMessage.value = `Error: ${data.message}`;
              }
         }
     } catch (e) { 
-        saveMessage.value = `${t('admin.msg.network_error')}: ${e.message}`; 
+        saveMessage.value = `网络错误: ${e.message}`; 
     } finally { 
         isSaving.value = false; 
     }
@@ -662,7 +660,7 @@ const saveNavData = async () => {
 
 const onSaveConfig = async () => {
     isSaving.value = true;
-    saveMessage.value = t('admin.msg.saving');
+    saveMessage.value = '正在保存...';
     successCommitUrl.value = '';
     try {
         const res = await fetch('/api/save-config', {
@@ -676,12 +674,12 @@ const onSaveConfig = async () => {
             saveMessage.value = '';
         } else {
              if (res.status === 401) {
-                 saveMessage.value = t('admin.msg.unauth');
+                 saveMessage.value = '未授权：管理员密码错误';
              } else {
                  saveMessage.value = `Error: ${data.message}`;
              }
         }
-    } catch (e) { saveMessage.value = `${t('admin.msg.network_error')}: ${e.message}`; } finally { isSaving.value = false; }
+    } catch (e) { saveMessage.value = `网络错误: ${e.message}`; } finally { isSaving.value = false; }
 };
 
 </script>

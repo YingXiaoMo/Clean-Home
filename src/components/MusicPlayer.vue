@@ -2,10 +2,10 @@
   <div class="music-card glass-card">
     <div class="header-btns">
       <button class="btn" @click="openList" type="button" aria-label="打开音乐列表">
-        {{ locale === 'en' ? 'Playlist' : '音乐列表' }}
+        音乐列表
       </button>
       <button class="btn" @click="store.musicOpenState = false" type="button" aria-label="返回一言卡片">
-        {{ locale === 'en' ? 'Back' : '回到一言' }}
+        回到一言
       </button>
     </div>
     <div class="controls">
@@ -34,10 +34,9 @@
         <div class="player-box">
           <APlayer
             v-if="songList.length > 0"
-            :key="locale"
             ref="aplayerRef"
             :audio="songList"
-            :lrcType="locale === 'en' ? 0 : 3"
+            :lrcType="3"
             :theme="'#efefef'"
             :autoplay="false"
             :listFolded="false"
@@ -50,7 +49,7 @@
             @timeupdate="onTimeUpdate"
           />
           <div v-else class="loading-tips">
-            {{ locale === 'en' ? 'Loading Playlist...' : '歌单加载中...' }}
+            歌单加载中...
           </div>
         </div>
       </div>
@@ -82,11 +81,8 @@
 import { ref, onMounted, watch, onBeforeUnmount } from 'vue';
 import { useGlobalStore } from '@/store';
 import { getPlayerList } from '@/api/music';
-import { musicConfig } from '@/config'; 
 import { Icon } from '@iconify/vue';
 import APlayer from '@worstone/vue-aplayer';
-import { useI18n } from 'vue-i18n'; 
-const { locale } = useI18n();
 const store = useGlobalStore();
 const songList = ref([]);
 const listVisible = ref(false);
@@ -104,37 +100,24 @@ watch(isPlaying, (val) => {
 const initMusicList = async () => {
   songList.value = [];
   currentSong.value = { 
-    name: locale.value === 'en' ? 'Loading...' : '加载中...', 
+    name: '加载中...', 
     artist: '', 
     cover: '', 
     lrc: '' 
   };
   try {
-    let list = [];
-    if (locale.value === 'en') {
-      console.log('🎵 [Music] 切换至英文模式：加载静态歌单');
-      if (musicConfig.global && musicConfig.global.length > 0) {
-        list = JSON.parse(JSON.stringify(musicConfig.global));
-      }
-    } else {
-      console.log('🎵 [Music] 切换至中文模式：请求 API');
-      list = await getPlayerList();
-    }
+    const list = await getPlayerList();
     if (list && list.length > 0) {
       songList.value = list;
       updateBySongObject(list[0]);
     } else {
-      currentSong.value.name = locale.value === 'en' ? "No Music" : "暂无音乐";
+      currentSong.value.name = "暂无音乐";
     }
   } catch (e) {
     console.error(e);
-    currentSong.value.name = locale.value === 'en' ? "Load Failed" : "加载失败";
+    currentSong.value.name = "加载失败";
   }
 };
-watch(locale, () => {
-  isPlaying.value = false;
-  initMusicList();
-});
 onMounted(() => {
   initMusicList();
 });

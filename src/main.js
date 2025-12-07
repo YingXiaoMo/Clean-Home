@@ -1,6 +1,5 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import { createI18n } from 'vue-i18n';
 import App from './App.vue';
 import { addCollection } from '@iconify/vue';
 
@@ -14,8 +13,6 @@ import hugeiconsIcons from '@iconify-json/hugeicons/icons.json';
 import carbonIcons from '@iconify-json/carbon/icons.json';
 
 import { initConsole } from '@/utils/console';
-import zh from '@/locales/zh.json';
-import en from '@/locales/en.json';
 
 if (!window.ColorThief) {
   window.ColorThief = class {
@@ -35,16 +32,6 @@ if (!window.ColorThief) {
   carbonIcons
 ].forEach(addCollection);
 
-const i18n = createI18n({
-  legacy: false, 
-  locale: localStorage.getItem('lang') || 'zh', 
-  fallbackLocale: 'en', 
-  messages: {
-    zh,
-    en
-  }
-});
-
 import router from './router';
 
 const app = createApp(App);
@@ -52,7 +39,6 @@ const pinia = createPinia();
 
 app.use(pinia);
 app.use(router);
-app.use(i18n); 
 app.mount('#app');
 
 initConsole();

@@ -2,28 +2,26 @@
   <Transition name="slide-down">
     <div v-if="visible" class="welcome-notify">
       <Icon :icon="greeting.icon" width="12" height="12" class="icon" />
-      <span class="text">{{ greeting.text }}{{ t('welcome.message') }}</span>
+      <span class="text">{{ greeting.text }}，欢迎来到我的主页</span>
     </div>
   </Transition>
 </template>
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { Icon } from '@iconify/vue';
-import { useI18n } from 'vue-i18n';
-const { t } = useI18n();
 const visible = ref(false);
 const greeting = computed(() => {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 11) {
-    return { text: t('welcome.morning'), icon: 'ri:sun-line' };
+    return { text: '早上好', icon: 'ri:sun-line' };
   } else if (hour >= 11 && hour < 13) {
-    return { text: t('welcome.noon'), icon: 'ri:sun-cloudy-line' };
+    return { text: '中午好', icon: 'ri:sun-cloudy-line' };
   } else if (hour >= 13 && hour < 17) {
-    return { text: t('welcome.afternoon'), icon: 'ri:cup-line' };
+    return { text: '下午好', icon: 'ri:cup-line' };
   } else if (hour >= 17 && hour < 23) {
-    return { text: t('welcome.evening'), icon: 'ri:moon-line' };
+    return { text: '晚上好', icon: 'ri:moon-line' };
   } else {
-    return { text: t('welcome.night'), icon: 'ri:moon-cloudy-line' };
+    return { text: '夜深了', icon: 'ri:moon-cloudy-line' };
   }
 });
 onMounted(() => {

@@ -4,7 +4,7 @@
       <div class="modal-content glass-card">
         <div class="header-title">
           <Icon icon="ri:compass-3-line" width="24" height="24" />
-          <span>{{ t('nav.title') }}</span>
+          <span>网站导航</span>
         </div>
         <button class="close-btn" @click="close" aria-label="Close">
           <Icon icon="ri:close-circle-fill" width="32" height="32" />
@@ -74,9 +74,7 @@ import { useGlobalStore } from '@/store';
 import { navData } from '@/config/nav';
 import { searchEngines } from '@/config/search';
 import { Icon } from '@iconify/vue';
-import { useI18n } from 'vue-i18n';
 const store = useGlobalStore();
-const { t } = useI18n();
 const contentReady = ref(false);
 const searchInputRef = ref(null);
 const keyword = ref('');
