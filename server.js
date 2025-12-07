@@ -145,11 +145,10 @@ app.post('/api/upload', checkAuth, upload.single('file'), async (req, res) => {
 // 天气接口代理 (适配 Docker/Node 环境)
 app.get('/api/weather', async (req, res) => {
     try {
-        // 1. 获取用户 IP
+        const { lat, lon } = req.query;
         let clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
         if (clientIP.includes(',')) clientIP = clientIP.split(',')[0].trim();
         
-        // 2. 环境变量
         const qweatherKey = process.env.VITE_QWEATHER_KEY;
         const qweatherHost = process.env.VITE_QWEATHER_HOST || 'https://devapi.qweather.com';
         const amapKey = process.env.VITE_AMAP_KEY;
@@ -158,33 +157,64 @@ app.get('/api/weather', async (req, res) => {
             return res.status(500).json({ success: false, message: 'Server Config Error: Missing Weather Keys' });
         }
 
-        // 3. 第三方 IP 定位 (Vore)
-        let cityName = '北京'; // 默认
-        try {
-            const voreUrl = `https://api.vore.top/api/IPdata?ip=${clientIP}`;
-            const voreRes = await fetch(voreUrl);
-            const voreData = await voreRes.json();
-            if (voreData.code === 200 && voreData.ipdata) {
-                cityName = voreData.ipdata.info2 || voreData.ipdata.info1;
-                cityName = cityName.replace(/市$/, '');
+        let locationParam = null; // 用于和风查询的 location 参数 (可能是 lon,lat 或 城市名)
+        let cityName = '未知城市'; // 用于高德查询和前端显示
+        let locationSource = 'IP';
+
+        // 1. 确定定位信息 (GPS 优先 -> IP 兜底)
+        if (lat && lon) {
+            locationSource = 'GPS';
+            locationParam = `${lon},${lat}`; // 和风的 geo lookup 支持经纬度
+            
+            // 如果有高德 Key，尝试通过高德逆地理编码获取城市名
+            if (amapKey) {
+                try {
+                    const regeoUrl = `https://restapi.amap.com/v3/geocode/regeo?location=${lon},${lat}&key=${amapKey}&extensions=base`;
+                    const regeoRes = await fetch(regeoUrl);
+                    const regeoData = await regeoRes.json();
+                    if (regeoData.status === '1' && regeoData.regeocode && regeoData.regeocode.addressComponent) {
+                        cityName = regeoData.regeocode.addressComponent.city.length > 0 ? 
+                                   regeoData.regeocode.addressComponent.city[0] : 
+                                   regeoData.regeocode.addressComponent.province;
+                        cityName = cityName.replace(/市$/, ''); // 确保城市名干净
+                    }
+                } catch (e) {
+                    console.warn('[Node] Amap Regeo failed:', e.message);
+                }
             }
-        } catch (e) {
-            console.warn('Vore IP lookup failed:', e.message);
+            if (cityName === '未知城市') cityName = '当前位置'; // 如果逆地理编码失败，给个通用名
+
+        } else {
+            // IP 定位 (Vore)
+            try {
+                const voreUrl = `https://api.vore.top/api/IPdata?ip=${clientIP}`;
+                const voreRes = await fetch(voreUrl);
+                const voreData = await voreRes.json();
+                if (voreData.code === 200 && voreData.ipdata) {
+                    cityName = voreData.ipdata.info2 || voreData.ipdata.info1;
+                    cityName = cityName.replace(/市$/, '');
+                    locationParam = cityName; // IP 定位时，和风也用城市名查
+                }
+            } catch (e) {
+                console.warn('[Node] Vore IP lookup failed:', e.message);
+            }
+            if (!locationParam) {
+                cityName = '北京';
+                locationParam = '北京';
+            }
         }
 
-        // 4. 优先尝试和风天气
+        // 2. 优先尝试和风天气
         if (qweatherKey) {
             try {
-                // 城市搜索
-                const geoUrl = `${qweatherHost}/geo/v2/city/lookup?location=${encodeURIComponent(cityName)}&key=${qweatherKey}&lang=zh`;
+                const geoUrl = `${qweatherHost}/geo/v2/city/lookup?location=${encodeURIComponent(locationParam)}&key=${qweatherKey}&lang=zh`;
                 const geoRes = await fetch(geoUrl);
                 const geoData = await geoRes.json();
 
                 if (geoData.code === '200' && geoData.location && geoData.location.length > 0) {
                     const locationID = geoData.location[0].id;
-                    const qCityName = geoData.location[0].name;
+                    cityName = geoData.location[0].name; // 更新为和风返回的准确城市名
                     
-                    // 实况天气
                     const weatherUrl = `${qweatherHost}/v7/weather/now?location=${locationID}&key=${qweatherKey}&lang=zh`;
                     const weatherRes = await fetch(weatherUrl);
                     const weatherData = await weatherRes.json();
@@ -194,46 +224,49 @@ app.get('/api/weather', async (req, res) => {
                         return res.json({
                             success: true,
                             data: {
-                                city: qCityName,
+                                city: cityName,
                                 weather: now.text,
                                 temperature: now.temp,
                                 wind: `${now.windDir} ${now.windScale}级`,
                                 updateTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }),
                                 ip: clientIP,
-                                source: '和风天气 (Node)'
+                                source: `和风天气 (${locationSource})`
                             }
                         });
                     }
                 }
             } catch (e) {
-                console.warn('QWeather failed, trying fallback:', e.message);
+                console.warn('[Node] QWeather failed, trying fallback:', e.message);
             }
         }
 
-        // 5. 失败后尝试高德天气
+        // 3. 失败后尝试高德天气
         if (amapKey) {
             try {
-                const amapUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${encodeURIComponent(cityName)}&key=${amapKey}`;
-                const amapRes = await fetch(amapUrl);
-                const amapData = await amapRes.json();
+                // 高德天气查询需要城市名或 adcode。如果 cityName 已经确定，直接用。
+                if (cityName && cityName !== '未知城市' && cityName !== '当前位置') {
+                    const amapUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${encodeURIComponent(cityName)}&key=${amapKey}`;
+                    const amapRes = await fetch(amapUrl);
+                    const amapData = await amapRes.json();
 
-                if (amapData.status === '1' && amapData.lives && amapData.lives.length > 0) {
-                    const live = amapData.lives[0];
-                    return res.json({
-                        success: true,
-                        data: {
-                            city: live.city,
-                            weather: live.weather,
-                            temperature: live.temperature,
-                            wind: `${live.winddirection}风 ${live.windpower}级`,
-                            updateTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }),
-                            ip: clientIP,
-                            source: '高德天气 (Node)'
-                        }
-                    });
+                    if (amapData.status === '1' && amapData.lives && amapData.lives.length > 0) {
+                        const live = amapData.lives[0];
+                        return res.json({
+                            success: true,
+                            data: {
+                                city: live.city,
+                                weather: live.weather,
+                                temperature: live.temperature,
+                                wind: `${live.winddirection}风 ${live.windpower}级`,
+                                updateTime: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                                ip: clientIP,
+                                source: `高德天气 (${locationSource})`
+                            }
+                        });
+                    }
                 }
             } catch (e) {
-                console.warn('Amap failed:', e.message);
+                console.warn('[Node] Amap weather failed:', e.message);
             }
         }
 

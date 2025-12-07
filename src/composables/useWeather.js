@@ -95,18 +95,56 @@ const fetchWeather = async () => {
   let detectedCity = null;
   let detectedIP = null;
 
-  console.log('🔄 尝试后端安全接口...');
+  // ----------------------------------------------------------------
+  // 阶段一：优先尝试后端安全接口 (和风/高德 + 隐藏 Key)
+  // 策略 A: 浏览器定位 (最准，无视代理)
+  // 策略 B: IP 定位 (兜底)
+  // ----------------------------------------------------------------
+  console.log('🔄 [Step 1] 尝试后端安全接口...');
+  
   try {
-    const res = await fetch('/api/weather');
+    let lat = null;
+    let lon = null;
+
+    // 尝试获取浏览器定位 (超时 3秒)
+    try {
+        const getLoc = () => new Promise((resolve, reject) => {
+            if (!navigator.geolocation) return reject('Not Supported');
+            navigator.geolocation.getCurrentPosition(
+                pos => resolve(pos.coords),
+                err => reject(err.message),
+                { timeout: 3000, maximumAge: 600000 }
+            );
+        });
+        const coords = await getLoc();
+        lat = coords.latitude;
+        lon = coords.longitude;
+        console.log(`📍 [浏览器定位] 获取经纬度成功: ${lat}, ${lon}`);
+    } catch (e) {
+        console.log('⚠️ 浏览器定位不可用或超时，降级为 IP 定位');
+    }
+
+    // 构建请求 URL
+    let apiUrl = '/api/weather';
+    if (lat && lon) {
+        apiUrl += `?lat=${lat}&lon=${lon}`;
+    }
+
+    const res = await fetch(apiUrl);
     if (res.ok) {
         const data = await res.json();
         if (data.success && data.data) {
             finalData = data.data;
-            console.log(`✅ 后端获取成功! 来源: ${finalData.source}`);
+            if (finalData.ip) console.log(`📡 你的 IP: ${finalData.ip}`);
+            if (finalData.source) console.log(`🌤️ 天气来源: ${finalData.source}`);
+        } else {
+            console.warn('❌ 后端接口返回失败:', data.message);
         }
+    } else {
+        console.warn(`❌ 后端接口 HTTP 错误: ${res.status}`);
     }
   } catch (e) {
-    console.warn('❌ 后端接口不可用，跳过。', e.message);
+    console.error('❌ 后端接口异常:', e);
   }
 
 
