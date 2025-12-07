@@ -50,9 +50,9 @@ Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本�
 
 | 变量名 | 作用 | 适用功能 | 必填 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
-| `VITE_AMAP_KEY` | 高德 Web 服务 Key | **天气/定位** | ✅ | `你的高德Key` |
-| `VITE_QWEATHER_KEY` | 和风天气 Web 服务 Key | **天气** | ✅ | `你的和风Key` |
-| `VITE_QWEATHER_HOST`| 和风天气 API 域名 | **天气** | ✅ | `https://api.qweather.com` |
+| `VITE_QWEATHER_KEY` | 和风天气 Web 服务 Key | **天气 (首选)** | ✅ | `你的和风Key` |
+| `VITE_QWEATHER_HOST`| 和风天气 API 域名 | **天气** | ✅ | `https://api.qweather.com` (免费版使用 `devapi`) |
+| `VITE_AMAP_KEY` | 高德 Web 服务 Key | **天气/逆地理编码** | ✅ | `你的高德Key` |
 | `VITE_MUSIC_API` | Meting 音乐 API 地址 | **音乐播放器** | ❌ | `https://api.injahow.cn/meting/` |
 | `GITHUB_TOKEN` | GitHub Token (需 `repo` 权限) | **后台管理** | ⚠️* | `ghp_xxxxxxxx` |
 | `REPO_OWNER` | GitHub 用户名 | **后台管理** | ⚠️* | `yourname` |
@@ -67,12 +67,6 @@ Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本�
 1.  **本地开发**: 创建 `.env` 文件填入。
 2.  **Vercel / Cloudflare Pages**: 在平台的 **Settings -> Environment Variables** 中填入。
 3.  **Docker**: 在 `docker run` 命令中使用 `-e` 参数传入。
-
-### 自建兜底 API 配置
-
-如果在 `.env` 中没有配置 Key，或者免费 API 均失败，项目将使用我自建的兜底 API。
-如果有自己的，可以在 `src/config/index.js` 中的 `apiEndpoints` 对象里修改兜底接口地址。
-
 
 ## ⚙️ 资源文件
 
@@ -114,14 +108,28 @@ Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本�
 
 ## 🔌 API 接口说明
 
-### 定位与天气逻辑
+### 智能天气逻辑
 
-本项目采用 **多级降级策略** 来确保数据始终可用：
+本项目采用 **四级混合降级策略**，确保在任何网络环境下（包括开启代理）都能准确获取天气：
 
-1. 由于高德 ipv6 支持不佳，优先尝试免费 API **[Vore](https://api.vore.top)**，**[Xxapi](https://xxapi.cn)**，自动获取位置。
-2.  若失败，**尝试 [高德IP定位](https://console.amap.com/dev/key/app)** 需在 `.env` 配置 `VITE_AMAP_KEY`。
-3.  若仍失败，尝试自建兜底 API，有自己的可以在 `src/config/index.js` 中配置 `userGeoHosts`。
-4.  最后获取天气：根据获取到的位置，依次尝试 **[和风天气](https://id.qweather.com)** -> **[高德天气](https://console.amap.com/dev/index)** -> **[vore 天气](https://api.vore.top/api/Weather)** -> **[自建兜底](https://api.ovoxo.cc)**，有一个返回结果会自动停止，全部失败返回默认北京。
+1.  **首选：浏览器原生定位 (GPS)**
+    *   前端尝试获取 `navigator.geolocation` 经纬度。
+    *   将经纬度发送给后端 `/api/weather`。
+    *   后端利用 **高德逆地理编码** 或 **和风 GeoAPI** 获取城市，再查询天气。
+    *   *优势：最精准，无视代理 IP 影响。*
+
+2.  **次选：后端 IP 定位**
+    *   如果 GPS 获取失败，前端请求 `/api/weather`（不带参数）。
+    *   后端通过 `X-Forwarded-For` 或 `CF-Connecting-IP` 获取用户 IP。
+    *   调用 **Vore.top** 接口获取城市名，再调用 **和风/高德** 查询天气。
+    *   *优势：隐藏 API Key，利用高质量付费 API。*
+
+3.  **三选：前端免费 API 兜底**
+    *   如果后端服务不可用，前端直接调用 **Vore.top** 或 **Xxapi.cn**。
+    *   *优势：无需 Key，无需后端，纯前端可用。*
+
+4.  **最终：自建 API 兜底**
+    *   如果上述所有方法均失败，调用 `src/config/index.js` 中配置的 `userGeoHosts`。
 
 
 ### 音乐
