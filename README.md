@@ -27,8 +27,6 @@
 
 # Clean Home (极简个人主页)
 
-[🇺🇸 English Documentation](./README_EN.md)
-
 Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本项目源于对开源项目 [imsyy/home](https://github.com/imsyy/home) 的深度重构。在保留原版优秀的视觉设计同时，移除了繁重的 UI 框架依赖，重写了底层逻辑，实现了更轻量、更稳定、响应式更佳的体验。
 
 ## ✨ 核心特性
@@ -84,7 +82,13 @@ Clean Home 是一个基于 Vue 3 + Vite 重构的极简风格个人主页。本�
 
 ## 📝 内容定制指南
 
-所有页面上的文字、链接、API 开关和兜底配置，都在 `src/config/index.js` 中集中管理。
+本项目支持两种配置方式：
+
+1.  **后台管理 (推荐)**：访问 `/admin`，登录后可直接修改站点标题、Logo、背景、链接等信息，修改将自动保存到 `src/config/site-data.json` 并提交到仓库。
+2.  **代码修改**：
+    *   **核心数据**：在 `src/config/site-data.json` 中修改。
+    *   **逻辑配置**：在 `src/config/index.js` 中管理（如环境变量覆盖、静态资源导入）。
+    *   **导航数据**：在 `src/config/nav.js` 中管理（也可以通过后台修改）。
 
 ## 🎨 如何查找图标
 
@@ -239,9 +243,10 @@ docker run -d -p 8080:3000 \
 
 ## 🤝 贡献与致谢
 
-感谢以下项目提供的灵感与资源：
+非常感谢开源项目 [imsyy/home](https://github.com/imsyy/home) 提供的设计灵感，本项目的 UI 设计深受其启发。
 
-- **原始设计: [imsyy/home](https://github.com/imsyy/home)**
+感谢以下项目提供的资源：
+
 - **[VORE-API](https://github.com/imsyy/home)**
 - **[小小API](https://xxapi.cn/)**
 - **图标：[Remix Icon via Iconify](https://icon-sets.iconify.design/)**:

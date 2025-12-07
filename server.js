@@ -116,6 +116,13 @@ app.post('/api/upload', checkAuth, upload.single('file'), async (req, res) => {
         const fileName = `${timestamp}-${safeName}`;
         const filePath = `public/uploads/${fileName}`; 
         const publicUrl = `/uploads/${fileName}`;
+
+        const localUploadDir = path.join(__dirname, 'dist', 'uploads');
+        if (!fs.existsSync(localUploadDir)) {
+            fs.mkdirSync(localUploadDir, { recursive: true });
+        }
+        fs.writeFileSync(path.join(localUploadDir, fileName), req.file.buffer);
+
         const contentBase64 = req.file.buffer.toString('base64');
         const branch = process.env.BRANCH_NAME || 'main';
         const url = `https://api.github.com/repos/${process.env.REPO_OWNER}/${process.env.REPO_NAME}/contents/${filePath}`;

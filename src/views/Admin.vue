@@ -361,325 +361,615 @@
 </template>
 
 <script setup>
+
 import { ref, onMounted, computed, nextTick } from 'vue';
+
 import { useRouter } from 'vue-router';
+
 import { Icon } from '@iconify/vue';
+
 import draggable from 'vuedraggable';
+
 import { navData } from '@/config/nav';
+
 import initialSiteData from '@/config/site-data.json'; 
+
+
 
 const router = useRouter();
 
-// Auth State
+
+
 const password = ref('');
+
 const isAuthenticated = ref(false);
+
 const error = ref('');
 
-// UI State
-const currentTab = ref('manage');
-const categoryList = ref(JSON.parse(JSON.stringify(navData)));
-const siteData = ref(JSON.parse(JSON.stringify(initialSiteData))); 
-const isSaving = ref(false);
-const saveMessage = ref('');
-const successCommitUrl = ref('');
-const hasUnsavedChanges = ref(false); // Dirty flag
 
-// Upload State
+
+const currentTab = ref('manage');
+
+const categoryList = ref(JSON.parse(JSON.stringify(navData)));
+
+const siteData = ref(JSON.parse(JSON.stringify(initialSiteData))); 
+
+const isSaving = ref(false);
+
+const saveMessage = ref('');
+
+const successCommitUrl = ref('');
+
+const hasUnsavedChanges = ref(false); 
+
+
+
 const fileInput = ref(null);
+
 const currentUploadTarget = ref(null); 
+
 const isUploading = ref(false);
 
-// Manage State
+
+
 const currentEditLink = ref(null);
 
-// Add Links State
+
+
 const newLinks = ref([{ name: '', url: '', icon: 'ri:link' }]);
+
 const selectedGroupTitle = ref(navData[0]?.title || ''); 
+
 const isUrl = (str) => str && (str.startsWith('http://') || str.startsWith('https://'));
+
 const validLinksCount = computed(() => newLinks.value.filter(l => l.name && l.url).length);
 
-// Add Folder State
+
+
 const newFolder = ref({ title: '', icon: 'ri:folder-line' });
 
-// --- Auth Methods ---
+
+
 const isLoggingIn = ref(false);
 
+
+
 const login = async () => {
+
   if (!password.value) return;
+
   
+
   isLoggingIn.value = true;
+
   error.value = '';
 
+
+
   try {
+
       const res = await fetch('/api/auth-check', {
+
           method: 'POST',
+
           headers: {
+
               'Content-Type': 'application/json',
+
               'x-admin-password': password.value
+
           }
+
       });
+
       
+
       const data = await res.json();
+
       
+
       if (res.ok && data.success) {
+
           localStorage.setItem('admin_token', password.value);
+
           isAuthenticated.value = true;
+
       } else {
+
           error.value = data.message || '密码错误';
+
       }
+
   } catch (e) {
+
       error.value = '网络错误';
+
   } finally {
+
       isLoggingIn.value = false;
+
   }
+
 };
+
+
 
 const logout = () => {
+
   localStorage.removeItem('admin_token');
+
   isAuthenticated.value = false;
+
   router.push('/');
+
 };
+
+
 
 onMounted(async () => {
+
   const token = localStorage.getItem('admin_token');
+
   if (token) {
+
     try {
+
         const res = await fetch('/api/auth-check', {
+
             method: 'POST',
+
             headers: {
+
                 'Content-Type': 'application/json',
+
                 'x-admin-password': token
+
             }
+
         });
+
         const data = await res.json();
+
         if (res.ok && data.success) {
+
             isAuthenticated.value = true;
+
         } else {
+
             localStorage.removeItem('admin_token');
+
             isAuthenticated.value = false;
+
         }
+
     } catch (e) {
-        // Network error or other issue during verification - safer to logout
+
         localStorage.removeItem('admin_token');
+
         isAuthenticated.value = false;
+
     }
+
   }
+
   
+
   if (!selectedGroupTitle.value && categoryList.value.length > 0) {
+
       selectedGroupTitle.value = categoryList.value[0].title;
+
   }
+
 });
 
-// --- Helper Methods ---
+
+
 const toggleGroup = (g) => g.collapsed = !g.collapsed;
 
+
+
 const onDragChange = () => {
+
     hasUnsavedChanges.value = true;
+
 };
+
+
 
 const detectIcon = (link) => {
+
     if (!link.url.startsWith('http') || link.url.length < 8) return;
+
     try {
+
         const domain = new URL(link.url).hostname;
+
         const fav = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+
         const img = new Image();
+
         img.src = fav;
+
         img.onload = () => { link.icon = fav; };
+
     } catch(e) {}
+
 };
+
+
 
 const addLinkRow = () => {
+
     newLinks.value.push({ name: '', url: '', icon: 'ri:link' });
+
     nextTick(() => {
+
         const container = document.querySelector('.dynamic-rows');
+
         if(container) container.scrollTop = container.scrollHeight;
+
     });
+
 };
+
 const removeLinkRow = (idx) => newLinks.value.splice(idx, 1);
 
-// --- Upload Methods ---
+
+
 const triggerUpload = (obj, key) => {
+
     currentUploadTarget.value = { obj, key };
+
     fileInput.value.click();
+
 };
+
+
 
 const handleFileUpload = async (event) => {
+
     const file = event.target.files[0];
+
     if (!file) return;
 
+
+
     isUploading.value = true;
+
     saveMessage.value = '正在上传...';
+
     successCommitUrl.value = '';
+
+
 
     const formData = new FormData();
+
     formData.append('file', file);
 
+
+
     try {
+
         const res = await fetch('/api/upload', {
+
             method: 'POST',
+
             headers: {
+
                 'x-admin-password': localStorage.getItem('admin_token') || ''
+
             },
+
             body: formData
+
         });
+
         const data = await res.json();
+
         
+
         if (res.ok) {
+
             if (currentUploadTarget.value) {
+
                 currentUploadTarget.value.obj[currentUploadTarget.value.key] = data.url;
+
             }
+
             saveMessage.value = ''; 
+
         } else {
+
              if (res.status === 401) {
+
                  saveMessage.value = '未授权：管理员密码错误';
+
              } else {
+
                  saveMessage.value = `Error: ${data.message}`;
+
              }
+
         }
+
     } catch (e) {
+
         saveMessage.value = `网络错误: ${e.message}`;
+
     } finally {
+
         isUploading.value = false;
+
         event.target.value = ''; 
+
         currentUploadTarget.value = null;
+
     }
+
 };
 
-// --- Local Data Management (The new "Staging" Logic) ---
+
 
 const deleteLinkLocal = (groupTitle, itemIndex) => {
+
     if(!confirm('确定删除此链接吗？此操作将处于暂存状态，需点击顶部保存按钮生效。')) return;
+
     const group = categoryList.value.find(g => g.title === groupTitle);
+
     if (group) {
+
         group.items.splice(itemIndex, 1);
+
         hasUnsavedChanges.value = true;
+
     }
+
 };
+
+
 
 const deleteGroupLocal = (group) => {
+
     if(!confirm(`确定删除分组 "${group.title}" 及其所有链接吗？`)) return;
+
     const idx = categoryList.value.findIndex(g => g.title === group.title);
+
     if(idx !== -1) {
+
         categoryList.value.splice(idx, 1);
+
         hasUnsavedChanges.value = true;
+
     }
+
 };
+
+
 
 const startEdit = (groupTitle, item, index) => {
+
     currentEditLink.value = {
+
         originalItem: item, 
+
         originalIndex: index, 
+
         oldGroupTitle: groupTitle,
+
         name: item.name, 
+
         url: item.url, 
+
         icon: item.icon, 
+
         newGroupTitle: groupTitle, 
+
     };
+
 };
+
+
 
 const confirmEditLocal = () => {
+
     const edit = currentEditLink.value;
+
     const oldGroup = categoryList.value.find(g => g.title === edit.oldGroupTitle);
+
     const newGroup = categoryList.value.find(g => g.title === edit.newGroupTitle);
+
     
+
     if (oldGroup && newGroup) {
+
         // Remove from old
+
         oldGroup.items.splice(edit.originalIndex, 1);
+
         // Add to new
+
         newGroup.items.push({
+
             name: edit.name,
+
             url: edit.url,
+
             icon: edit.icon
+
         });
+
         hasUnsavedChanges.value = true;
+
         currentEditLink.value = null;
+
     }
+
 };
+
+
 
 const addLinksLocal = () => {
+
     const group = categoryList.value.find(g => g.title === selectedGroupTitle.value);
+
     const valid = newLinks.value.filter(l => l.name && l.url);
+
     if (group && valid.length > 0) {
+
         group.items.push(...valid);
+
         newLinks.value = [{ name: '', url: '', icon: 'ri:link' }]; // Reset
+
         hasUnsavedChanges.value = true;
+
         alert(`已暂存 ${valid.length} 个链接，请记得点击顶部的保存按钮！`);
+
     }
+
 };
+
+
 
 const addGroupLocal = () => {
+
     if (!newFolder.value.title) return;
+
     categoryList.value.push({
+
         title: newFolder.value.title,
+
         icon: newFolder.value.icon || 'ri:folder-line',
+
         items: []
+
     });
+
     newFolder.value = { title: '', icon: 'ri:folder-line' };
+
     hasUnsavedChanges.value = true;
+
     alert('分组已暂存，请记得点击顶部的保存按钮！');
+
 };
 
-// --- API Methods ---
+
+
 const getHeaders = () => ({
+
     'Content-Type': 'application/json',
+
     'x-admin-password': localStorage.getItem('admin_token') || ''
+
 });
 
-// The BIG Save Button Handler
+
+
 const saveNavData = async () => {
+
     if (!hasUnsavedChanges.value) return;
+
     isSaving.value = true;
+
     saveMessage.value = '正在保存...';
+
     successCommitUrl.value = '';
+
     
+
     try {
+
         const res = await fetch('/api/save-nav', {
+
             method: 'POST',
+
             headers: getHeaders(),
+
             body: JSON.stringify(categoryList.value)
+
         });
+
         const data = await res.json();
+
         if (res.ok) {
+
             successCommitUrl.value = data.commit_url;
+
             saveMessage.value = '';
+
             hasUnsavedChanges.value = false;
-            // Optional: Reload or show big success toast
+
         } else {
+
              if (res.status === 401) {
+
                  saveMessage.value = '未授权：管理员密码错误';
+
              } else {
+
                  saveMessage.value = `Error: ${data.message}`;
+
              }
+
         }
+
     } catch (e) { 
+
         saveMessage.value = `网络错误: ${e.message}`; 
+
     } finally { 
+
         isSaving.value = false; 
+
     }
+
 };
 
+
+
 const onSaveConfig = async () => {
+
     isSaving.value = true;
+
     saveMessage.value = '正在保存...';
+
     successCommitUrl.value = '';
+
     try {
+
         const res = await fetch('/api/save-config', {
+
             method: 'POST',
+
             headers: getHeaders(),
+
             body: JSON.stringify(siteData.value)
+
         });
+
         const data = await res.json();
+
         if (res.ok) {
+
             successCommitUrl.value = data.commit_url;
+
             saveMessage.value = '';
+
         } else {
+
              if (res.status === 401) {
+
                  saveMessage.value = '未授权：管理员密码错误';
+
              } else {
+
                  saveMessage.value = `Error: ${data.message}`;
+
              }
+
         }
+
     } catch (e) { saveMessage.value = `网络错误: ${e.message}`; } finally { isSaving.value = false; }
+
 };
 
 </script>
@@ -794,7 +1084,6 @@ const onSaveConfig = async () => {
   &:hover:not(.active) { background: rgba(255,255,255,0.1); }
 }
 
-/* Global Save Bar */
 .global-save-bar {
     background: rgba(255, 165, 0, 0.15);
     border: 1px solid rgba(255, 165, 0, 0.4);
@@ -825,7 +1114,6 @@ const onSaveConfig = async () => {
     &:hover:not(:disabled) { background: #3099f1; }
 }
 
-/* Copied Styles */
 .manage-container { padding: 0 10px; }
 .group-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -877,7 +1165,6 @@ const onSaveConfig = async () => {
     overflow-y: auto; 
     padding-right: 5px; 
 
-    /* 自定义滚动条 */
     &::-webkit-scrollbar { width: 6px; height: 6px; }
     &::-webkit-scrollbar-track { background: transparent; }
     &::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
@@ -891,7 +1178,6 @@ const onSaveConfig = async () => {
 
 .message { margin-top: 20px; padding: 10px; border-radius: 6px; &.info { color: #ffd700; background: rgba(255,215,0,0.1); } &.error { color: #ff4d4f; background: rgba(255,0,0,0.1); } &.success { color: #76ff7a; background: rgba(30,200,30,0.1); } }
 
-/* Config Form Styles */
 .config-container { padding: 0 10px; padding-bottom: 60px; }
 .config-section { margin-bottom: 30px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; }
 .section-title { margin-bottom: 15px; border-left: 3px solid #4facfe; padding-left: 10px; color: #fff; font-size: 1.1rem; }
@@ -901,7 +1187,6 @@ textarea.glass-input { resize: vertical; min-height: 80px; }
 .link-row-card.compact { padding: 10px; }
 .sticky-bottom { position: sticky; bottom: 0; background: #1a1a1a; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); box-shadow: 0 -5px 15px rgba(0,0,0,0.5); z-index: 10; margin-top: 20px; }
 
-/* Upload Styles */
 .input-with-upload { display: flex; align-items: center; gap: 8px; position: relative; width: 100%; }
 .input-with-upload .glass-input { flex: 1; }
 .upload-trigger-btn {
@@ -913,11 +1198,9 @@ textarea.glass-input { resize: vertical; min-height: 80px; }
 .upload-trigger-btn.inside { position: absolute; right: 35px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; z-index: 10; &:hover { background: none; color: #4facfe; } }
 .upload-trigger-btn.icon-small { padding: 4px; width: 30px; height: 30px; }
 
-/* Transitions */
 .slide-up-enter-active, .slide-up-leave-active { transition: all 0.3s ease; }
 .slide-up-enter-from, .slide-up-leave-to { opacity: 0; transform: translateY(-20px); }
 
-/* Drag & Drop Styles */
 .drag-handle-group, .drag-handle-item {
     cursor: move;
     color: rgba(255, 255, 255, 0.3);

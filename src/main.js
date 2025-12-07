@@ -3,7 +3,6 @@ import { createPinia } from 'pinia';
 import App from './App.vue';
 import { addCollection } from '@iconify/vue';
 
-// Import Icon Collections
 import riIcons from '@iconify-json/ri/icons.json';
 import mingcuteIcons from '@iconify-json/mingcute/icons.json';
 import mdiIcons from '@iconify-json/mdi/icons.json';
@@ -21,7 +20,6 @@ if (!window.ColorThief) {
   };
 }
 
-// Register all icon collections
 [
   riIcons, 
   mingcuteIcons, 
