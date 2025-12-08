@@ -4,47 +4,22 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
     <link rel="icon" href="/icon/favicon.ico" />
     <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
     <link rel="bookmark" href="/icon/favicon.ico" />
+
     <link rel="preload" href="/font/Pacifico-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="/font/UnidreamLED.ttf" as="font" type="font/ttf" crossorigin>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
-    <title>Clean Home - 极简个人主页 | 你的互联网栖息地</title>
+
+    <title>Clean Home</title>
     <meta name="author" content="Clean Home" />
-    <meta name="description" content="Clean Home 是一个基于 Vue 3 + Vite 打造的极简个人主页与导航站。提供天气、音乐播放、一言、快捷导航等实用功能，界面唯美，体验流畅。打造属于你的互联网温馨小窝。" />
-    <meta name="keywords" content="个人主页, 导航页, 起始页, Vue3, Vite, 极简主页, 桌面, 效率工具, Clean Home, 个人网站" />
+    <meta name="description" content="A minimal personal homepage" />
+    <meta name="keywords" content="个人主页,导航,博客,Vue3,Vite" />
     <meta name="theme-color" content="#424242" />
     
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://ovoxo.cc/" />
-    <meta property="og:title" content="Clean Home - 极简个人主页 | 你的互联网栖息地" />
-    <meta property="og:description" content="记录生活碎片、收集灵感糖果的小站。提供天气、音乐、导航等功能，点进来就是朋友啦！" />
-    <meta property="og:image" content="/icon/logo.png" />
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://ovoxo.cc/" />
-    <meta property="twitter:title" content="Clean Home - 极简个人主页 | 你的互联网栖息地" />
-    <meta property="twitter:description" content="记录生活碎片、收集灵感糖果的小站。提供天气、音乐、导航等功能，点进来就是朋友啦！" />
-    <meta property="twitter:image" content="/icon/logo.png" />
-
-    <!-- Structured Data (JSON-LD) -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Clean Home",
-        "url": "https://ovoxo.cc/",
-        "author": {
-          "@type": "Person",
-          "name": "Clean Home"
-        },
-        "description": "A minimal personal homepage built with Vue 3 and Vite.",
-        "keywords": "Personal Homepage, Navigation, Vue3"
-      }
-    </script>
     <style>
       body { 
         margin: 0; 
@@ -52,40 +27,55 @@
         background: #222; 
         font-family: sans-serif;
       }
+      
       #app-loading {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: #222; 
+        background: #111; 
         z-index: 99999;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        color: rgba(255, 255, 255, 0.9);
       }
-      .loading-logo {
-        width: 80px;
-        height: 80px;
+
+      .loader {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #FFF;
+        border-bottom-color: transparent;
         border-radius: 50%;
-        object-fit: cover;
-        box-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        animation: logo-float 2s ease-in-out infinite;
+        display: inline-block;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+        margin-bottom: 15px;
       }
-      @keyframes logo-float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
+
+      .text {
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+        font-weight: bold;
+      }
+
+      @keyframes rotation {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
     </style>
   </head>
+
   <body>
     <div id="app">
       <div id="app-loading">
-        <img src="/icon/logo.png" alt="Loading" class="loading-logo" />
+        <span class="loader"></span>
+        <span class="text">Loading...</span>
       </div>
     </div>
+    
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

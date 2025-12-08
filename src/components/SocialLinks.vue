@@ -13,17 +13,21 @@
     </a>
   </div>
 </template>
+
 <script setup>
 import { socialLinks } from '@/config';
 import { Icon } from '@iconify/vue';
+
 const links = socialLinks;
 </script>
+
 <style scoped lang="scss">
 .social {
   margin-top: 1rem;
   display: flex;
   align-items: center;
   gap: 15px;
+  
   .link-item {
     position: relative;
     display: flex;
@@ -35,17 +39,21 @@ const links = socialLinks;
     color: #fff;
     text-decoration: none;
     transition: all 0.3s;
+    
     &:hover {
       background-color: rgba(255,255,255,0.2);
       transform: scale(1.1);
+      
       &::after {
         opacity: 1;
         visibility: visible;
         transform: translate(-50%, 0); 
       }
     }
+
     &::after {
       content: attr(data-tip);
+      
       position: absolute;
       bottom: 100%; 
       left: 50%;
@@ -55,10 +63,12 @@ const links = socialLinks;
       backdrop-filter: blur(4px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 5px;
+      
       color: #fff;
       font-size: 12px;
       white-space: nowrap;
       line-height: 1.2;
+      
       opacity: 0;
       visibility: hidden;
       pointer-events: none;

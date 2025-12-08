@@ -1,35 +1,17 @@
-# Stage 1: Build Frontend
-FROM node:lts-alpine as builder
-
+# Build Stage
+FROM node:lts-alpine as build-stage
 WORKDIR /app
-
-# Copy package.json and install dependencies
 COPY package*.json ./
-RUN npm ci
-
-# Copy source code
+RUN npm install
 COPY . .
-
-# Build Vue app to /app/dist
 RUN npm run build
 
-# Stage 2: Serve with Node.js Express
-FROM node:lts-alpine
+# Production Stage
+FROM nginx:stable-alpine as production-stage
+# 复制构建产物
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+# 复制自定义 Nginx 配置
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-WORKDIR /app
-
-# Copy necessary files
-COPY package*.json ./
-COPY server.js ./
-
-# Install production dependencies only (express, multer)
-RUN npm install --production
-
-# Copy built assets from builder stage
-COPY --from=builder /app/dist ./dist
-
-# Expose port
-EXPOSE 3000
-
-# Start server
-CMD ["node", "server.js"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

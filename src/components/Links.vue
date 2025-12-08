@@ -4,6 +4,7 @@
       <Icon icon="ri:link" width="20" height="20" />
       <span class="title">网站列表</span>
     </div>
+    
     <swiper
       :modules="[Pagination, Mousewheel]"
       :slides-per-view="1"
@@ -29,12 +30,9 @@
         </div>
       </swiper-slide>
     </swiper>
-    <div class="more-btn-wrapper glass-card" @click="openNav">
-      <Icon icon="ri:apps-line" width="20" height="20" />
-      <span>常用网站</span>
-    </div>
   </div>
 </template>
+
 <script setup>
 import { computed } from 'vue';
 import { Swiper, SwiperSlide } from 'swiper/vue';
@@ -43,8 +41,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import { Icon } from '@iconify/vue';
 import { siteLinks } from '@/config';
-import { useGlobalStore } from '@/store'; 
-const store = useGlobalStore(); 
+
 const siteLinksList = computed(() => {
   const result = [];
   for (let i = 0; i < siteLinks.length; i += 6) {
@@ -52,14 +49,13 @@ const siteLinksList = computed(() => {
   }
   return result;
 });
-const openNav = () => {
-  store.navOpenState = true;
-};
 </script>
+
 <style scoped lang="scss">
 .links-card {
   width: 100%;
   margin-top: 0;
+  
   .header {
     display: flex;
     align-items: center;
@@ -67,22 +63,27 @@ const openNav = () => {
     color: white;
     .title { margin-left: 8px; font-weight: bold; font-size: 1.1rem; }
   }
+
   .link-swiper {
     width: 100%;
     padding-bottom: 30px;
+    
     :deep(.swiper-pagination-bullet) {
       background: #fff;
       opacity: 0.4;
       &.swiper-pagination-bullet-active { opacity: 1; }
     }
   }
+
   .link-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 25px;
+    
     @media (max-width: 720px) {
       grid-template-columns: repeat(2, 1fr);
     }
+    
     .link-item {
       height: 120px;
       display: flex;
@@ -93,11 +94,14 @@ const openNav = () => {
       text-decoration: none;
       transition: 0.3s;
       padding: 0 10px;
+
       &:hover {
         background: rgba(0,0,0,0.4);
         transform: translateY(-5px);
       }
+
       .icon-box { margin-bottom: 10px; }
+      
       .name { 
         font-size: 1.1rem; 
         opacity: 0.9;
@@ -109,28 +113,8 @@ const openNav = () => {
       }
     }
   }
-  .more-btn-wrapper {
-    margin-top: 5px;
-    width: 100%;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1rem;
-    &:hover {
-      background: rgba(0, 0, 0, 0.4);
-      transform: translateY(-3px);
-      color: #fff;
-    }
-    &:active {
-      transform: scale(0.98);
-    }
-  }
 }
+
 .glass-card {
   background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(10px);

@@ -7,6 +7,7 @@
       </div>
       <div class="clock">{{ timeData.time }}</div>
     </div>
+    
     <div class="weather-section">
       <span v-if="loading" class="loading-text">正在获取天气...</span>
       <div v-else class="weather-info">
@@ -18,12 +19,15 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { useTime } from '@/composables/useTime';
 import { useWeather } from '@/composables/useWeather';
+
 const { timeData } = useTime();
 const { weatherData, loading } = useWeather();
 </script>
+
 <style scoped lang="scss">
 .glass-card {
   padding: 20px 25px;
@@ -39,14 +43,18 @@ const { weatherData, loading } = useWeather();
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.3s;
   box-sizing: border-box;
+
   &:hover { transform: scale(1.01); }
+  
   .time-section {
     text-align: center;
+    
     .date {
       font-size: 0.95rem;
       opacity: 0.85;
       .weekday { margin-left: 10px; }
     }
+    
     .clock {
       font-size: 3.5rem;
       font-family: "UnidreamLED", sans-serif;
@@ -56,24 +64,30 @@ const { weatherData, loading } = useWeather();
       line-height: 1;
     }
   }
+
   .weather-section {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    
     .loading-text {
       font-size: 0.9rem;
       opacity: 0.7;
     }
+
     .weather-info {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px; 
+      
+    
       white-space: nowrap; 
       overflow: hidden; 
       text-overflow: ellipsis;
       width: 100%;
+      
       .item {
         font-size: 1rem;
         opacity: 0.9;
@@ -81,6 +95,8 @@ const { weatherData, loading } = useWeather();
     }
   }
 }
+
+
 @media (max-width: 720px) {
   .glass-card .time-section .clock { font-size: 3rem; }
   .glass-card .weather-section .weather-info .item {
