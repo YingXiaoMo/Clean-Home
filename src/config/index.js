@@ -15,7 +15,7 @@ export const siteConfig = {
   description: "记录生活碎片、收集灵感糖果的小站，点进来就是朋友啦！",
   url: "ovoxo.cc",                   // 站点链接 (用户自己的域名)
   startTime: "2025-04-15",           // 建站时间
-  icp: "京ICP备2022015201号-1",       // ICP 备案号
+  icp: "-----备案信息-----",       // ICP 备案号
   
 
 
