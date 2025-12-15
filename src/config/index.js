@@ -138,7 +138,7 @@ export const siteLinks = [
   { 
     name: "导航页", 
     link: "https://nav.ovoxo.cc", 
-    icon: "ri--compass-3-line" 
+    icon: "ri:compass-3-line" 
   },
   { 
     name: "音乐", 
