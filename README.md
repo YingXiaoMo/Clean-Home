@@ -222,6 +222,18 @@ docker build -t home .
 docker run -p 44355:80 -d home
 ```
 
+### 3. Docker Compose 部署 (推荐)
+如果您已经安装了 Docker Compose，可以使用以下方式一键部署：
+
+```bash
+# 启动
+docker compose up -d
+# 停止
+docker compose down
+# 更新镜像并重启
+docker compose pull && docker compose up -d
+```
+
 
 
 

@@ -1,0 +1,25 @@
+services:
+  home:
+    image: yingxiaomo/home:latest
+    container_name: clean-home
+    restart: always
+    ports:
+      - "44355:80"
+    # 如果你想让容器支持 IPv6，或者有特定的网络需求，可以在这里添加网络配置
+    networks:
+      - home-network
+    # 健康检查，确保 Nginx 正常响应
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  home-network:
+    driver: bridge
