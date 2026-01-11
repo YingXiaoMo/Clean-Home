@@ -12,7 +12,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && echo '--- INDEX.HTML CONTENT ---' && cat dist/index.html",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
