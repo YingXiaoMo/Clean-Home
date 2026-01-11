@@ -20,6 +20,20 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # 自动更新服务：监控镜像变化并自动重启容器
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # 仅更新本项目相关的容器（通过容器名过滤，或者不填则更新全部）
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+    # 也可以指定只监控特定的容器
+    command: --interval 300 clean-home
+
 networks:
   home-network:
     driver: bridge
