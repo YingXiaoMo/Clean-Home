@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import viteCompression from 'vite-plugin-compression'
 
 export default defineConfig({
+  base: './',
   plugins: [
     vue(),
     viteCompression({
