@@ -7,13 +7,14 @@ export default defineConfig({
   base: './',
   plugins: [
     vue(),
-    viteCompression({
+    // 压缩插件在 CI 环境（Cloudflare Pages 等）可能导致构建卡死，CI 时自动跳过
+    ...(process.env.CI ? [] : [viteCompression({
       verbose: true,
       disable: false,
       threshold: 10240,
       algorithm: 'gzip',
       ext: '.gz',
-    }),
+    })]),
   ],
   resolve: {
     alias: {

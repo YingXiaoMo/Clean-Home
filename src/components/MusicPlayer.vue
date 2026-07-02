@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="music-card glass-card">
     <div class="header-btns">
       <button class="btn" @click="openList" type="button" aria-label="打开音乐列表">音乐列表</button>
@@ -185,7 +185,15 @@ const onTimeUpdate = (e) => {
   }
 
   // 兼容数字和 DOM Event 两种传参方式
-  const time = typeof e === 'number' ? e : e?.target?.currentTime ?? 0;
+  // APlayer timeupdate 可能传数字（currentTime）或 Event 对象
+  let time = 0;
+  if (typeof e === 'number') {
+    time = e;
+  } else if (e?.target?.currentTime !== undefined) {
+    time = e.target.currentTime;
+  } else if (e?.currentTime !== undefined) {
+    time = e.currentTime; 
+  }
   if (lrcLines.length) {
     let idx = -1;
     for (let i = 0; i < lrcLines.length; i++) {
@@ -210,9 +218,13 @@ const parseLrc = async (lrcUrl) => {
     const res = await fetch(lrcUrl);
     const text = await res.text();
     text.split('\n').forEach(line => {
-      const match = /^\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)$/.exec(line);
+      const match = /^\[(\d{2}):(\d{2})\.(\d{1,3})\](.*)$/.exec(line);
       if (match) {
-        const time = parseInt(match[1])*60 + parseInt(match[2]) + parseInt(match[3].padEnd(3,'0'))/1000;
+        // 兼容 1-3 位毫秒数: .2 → 200ms, .20 → 200ms, .200 → 200ms
+        const rawMs = match[3];
+        const divisor = Math.pow(10, 3 - rawMs.length);
+        const ms = parseInt(rawMs) * divisor;
+        const time = parseInt(match[1])*60 + parseInt(match[2]) + ms / 1000;
         const text = match[4].trim();
         if (text) lrcLines.push({ time, text });
       }

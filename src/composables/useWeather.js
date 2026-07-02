@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue';
+﻿import { ref, onMounted, onUnmounted } from 'vue';
 import dayjs from 'dayjs';
 import { apiEndpoints } from '@/config';
 
@@ -57,7 +57,7 @@ const FREE_IP_APIS = [
 ];
 
 
-const FETCH_TIMEOUT = 20000;
+const FETCH_TIMEOUT = 10000;
 
 const fetchWithTimeout = (url, options = {}, timeout = FETCH_TIMEOUT) => {
   const controller = new AbortController();
@@ -122,7 +122,7 @@ const getLocationByFreeApi = async () => {
   for (const api of FREE_IP_APIS) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000); 
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT); 
       const res = await fetch(api.url, { signal: controller.signal });
       clearTimeout(timeoutId);
 
@@ -217,15 +217,16 @@ const getVoreWeather = async () => {
     
     if (data.code === 200 && data.data) {
       let d = data.data;
-      if (d.tianqi && typeof d.tianqi === 'object') {
-        d = d.tianqi;
+      // 兼容 Vore API 可能返回的嵌套结构，合并 tianqi 子对象避免字段丢失
+      if (d.tianqi && typeof d.tianqi === 'object' && !Array.isArray(d.tianqi)) {
+        d = { ...d, ...d.tianqi };
       }
 
       return {
         success: true,
         data: {
-          city: d.city || '未知城市',
-          weather: d.weather || d.tianqi || '未知',
+          city: (typeof d.city === 'string' ? d.city : '未知城市'),
+          weather: (typeof d.weather === 'string' ? d.weather : '未知'),
           temperature: d.temp || d.temperature || '0',
           wind: d.wind || d.winddirection || '未知', 
           updateTime: dayjs().format('HH:mm')

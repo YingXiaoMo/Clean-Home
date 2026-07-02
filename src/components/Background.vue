@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="cover" :class="{ 'show': store.backgroundShow }">
     <img
       v-if="imgSrc"
@@ -58,9 +58,13 @@ const handleError = () => {
   console.error('❌ 背景图加载失败:', imgSrc.value);
   
   if (themeConfig.background.type === 'local' && imgSrc.value !== themeConfig.background.apiURL) {
-     console.warn('🔄 尝试切换到 API 背景...');
+     console.warn('🔄 本地背景加载失败，尝试切换到 API 背景...');
      loadApiImage();
   } else {
+     // 本地和 API 均失败时，强制进入页面（显示纯色背景）
+     if (themeConfig.background.type === 'local') {
+       console.warn('⚠️ 本地与 API 背景均加载失败，使用纯色背景');
+     }
      store.setImgLoadStatus(true);
      store.backgroundShow = true;
   }
