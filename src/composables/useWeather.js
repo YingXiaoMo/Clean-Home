@@ -1,4 +1,4 @@
-﻿import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import dayjs from 'dayjs';
 import { apiEndpoints } from '@/config';
 
@@ -31,7 +31,7 @@ const FREE_IP_APIS = [
     url: 'https://api.vore.top/api/IPdata', 
     handler: (data) => {
       if (data.code === 200 && data.ipdata) {
-        return { city: data.ipdata.info2, ip: data.ipinfo?.text || data.ip }; 
+        return { city: data.ipdata.info2, ip: data.ipinfo?.text }; 
       }
       return null;
     }
@@ -57,7 +57,7 @@ const FREE_IP_APIS = [
 ];
 
 
-const FETCH_TIMEOUT = 10000;
+const FETCH_TIMEOUT = 20000;
 
 const fetchWithTimeout = (url, options = {}, timeout = FETCH_TIMEOUT) => {
   const controller = new AbortController();
@@ -121,7 +121,10 @@ const getLocationByFreeApi = async () => {
   console.log('🌍 尝试免费第三方 IP 定位 (Vore/Xxapi)...');
   for (const api of FREE_IP_APIS) {
     try {
-      const res = await fetchWithTimeout(api.url);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); 
+      const res = await fetch(api.url, { signal: controller.signal });
+      clearTimeout(timeoutId);
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -214,16 +217,15 @@ const getVoreWeather = async () => {
     
     if (data.code === 200 && data.data) {
       let d = data.data;
-      // 兼容 Vore API 可能返回的嵌套结构，合并 tianqi 子对象避免字段丢失
-      if (d.tianqi && typeof d.tianqi === 'object' && !Array.isArray(d.tianqi)) {
-        d = { ...d, ...d.tianqi };
+      if (d.tianqi && typeof d.tianqi === 'object') {
+        d = d.tianqi;
       }
 
       return {
         success: true,
         data: {
-          city: (typeof d.city === 'string' ? d.city : '未知城市'),
-          weather: (typeof d.weather === 'string' ? d.weather : '未知'),
+          city: d.city || '未知城市',
+          weather: d.weather || d.tianqi || '未知',
           temperature: d.temp || d.temperature || '0',
           wind: d.wind || d.winddirection || '未知', 
           updateTime: dayjs().format('HH:mm')

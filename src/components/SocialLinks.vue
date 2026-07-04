@@ -1,11 +1,10 @@
-﻿<template>
+<template>
   <div class="social">
     <a 
       v-for="item in links" 
       :key="item.name" 
       :href="item.url" 
       target="_blank" 
-      rel="noopener noreferrer"
       class="link-item"
       :data-tip="item.tip" 
       :aria-label="item.name"

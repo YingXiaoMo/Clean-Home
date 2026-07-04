@@ -1,4 +1,4 @@
-﻿// src/config/index.js
+// src/config/index.js
 
 /**
  * -----------------------------------------------------------------------------
@@ -67,16 +67,17 @@ export const themeConfig = {
 
 
 
-/*
- * 社交链接配置
+/**
+// 社交链接配置
  * 如何使用新图标:
  * 1. 访问图标库：https://icon-sets.iconify.design/
- * 2. 搜索你想要的图标（如 "bilibili"），找到图标代码（如 "ri:bilibili-fill"）。
- * 3. 如果图标的前缀（如 "ri:" 或 "mingcute:"）项目中没有安装，需先安装：
- *    npm install @iconify-json/{前缀} -D
- *    例如: npm install @iconify-json/mdi -D
- *    然后在 src/main.js 中引入并注册 (addCollection)。
- * 4. 如果是已有前缀 (ri: 和 mingcute:)，直接填写代码即可使用。
+ * 2. 搜索你想要的图标（如 "bilibili"），找到喜欢的图标代码（如 "ri:bilibili-fill"）。
+ * 3. 如果图标的前缀（如 "ri:" 或 "mingcute:"）项目中没有安装，你需要安装并注册：
+ * - 终端运行命令安装：npm install @iconify-json/{前缀} -D
+ * - 例如安装 Material Design: 
+ * -                          npm install @iconify-json/mdi -D
+ * - 在 src/main.js 中引入并注册 (addCollection)。
+ * 4. 如果是已有前缀 (ri: 和 mingcute:)，直接填代码即可使用。
  */
 
 // 嫌太长了，可以把下面的每个卡片写成一行:

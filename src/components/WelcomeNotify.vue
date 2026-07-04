@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Transition name="slide-down">
     <div v-if="visible" class="welcome-notify">
       <Icon :icon="greeting.icon" width="12" height="12" class="icon" />
@@ -10,12 +10,27 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
-import { useGreeting } from '@/composables/useGreeting';
 
-const { greeting } = useGreeting();
 const visible = ref(false);
+const greeting = ref({ text: '', icon: '' });
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 11) {
+    return { text: '早上好', icon: 'ri:sun-line' };
+  } else if (hour >= 11 && hour < 13) {
+    return { text: '中午好', icon: 'ri:sun-cloudy-line' };
+  } else if (hour >= 13 && hour < 17) {
+    return { text: '下午好', icon: 'ri:cup-line' };
+  } else if (hour >= 17 && hour < 23) {
+    return { text: '晚上好', icon: 'ri:moon-line' };
+  } else {
+    return { text: '夜深了', icon: 'ri:moon-cloudy-line' };
+  }
+};
 
 onMounted(() => {
+  greeting.value = getGreeting();
   setTimeout(() => { visible.value = true; }, 500);
   setTimeout(() => { visible.value = false; }, 3500);
 });

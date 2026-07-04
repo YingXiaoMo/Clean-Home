@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Transition name="fade" mode="out-in">
     <div class="loading" v-if="!store.imgLoadStatus">
       
@@ -20,6 +20,11 @@
         <div class="loader"></div>
         
         <span class="loading-text">Loading...</span>
+        
+        <div class="font-preload-helper">
+          <span style="font-family: 'Pacifico-Regular'">preload</span>
+          <span style="font-family: 'UnidreamLED'">preload</span>
+        </div>
       </div>
     </div>
   </Transition>
@@ -120,8 +125,8 @@ watch(() => store.playerTitle, (newVal) => {
 </script>
 
 <style lang="scss">
-@font-face { font-family: "Pacifico-Regular"; src: url("/font/Pacifico-Regular.ttf"); font-display: swap; }
-@font-face { font-family: "UnidreamLED"; src: url("/font/UnidreamLED.ttf"); font-display: swap; }
+@font-face { font-family: "Pacifico-Regular"; src: url("/font/Pacifico-Regular.ttf"); }
+@font-face { font-family: "UnidreamLED"; src: url("/font/UnidreamLED.ttf"); }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -204,7 +209,7 @@ body {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.15); /* Logo 发光 */
   border: 2px solid rgba(255, 255, 255, 0.1);
   animation: logo-float 3s ease-in-out infinite;
   position: relative;
@@ -257,6 +262,14 @@ body {
 @keyframes orb-float {
   0% { transform: translate(0, 0) scale(1); }
   100% { transform: translate(30px, 30px) scale(1.1); }
+}
+
+.font-preload-helper {
+  position: absolute;
+  width: 0; height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .music-notify {

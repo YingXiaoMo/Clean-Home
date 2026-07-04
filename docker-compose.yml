@@ -1,4 +1,4 @@
-﻿services:
+services:
   home:
     image: yingxiaomo/home:latest
     container_name: clean-home
@@ -30,9 +30,9 @@
     environment:
       # 仅更新本项目相关的容器（通过容器名过滤，或者不填则更新全部）
       - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_POLL_INTERVAL=600
+      - WATCHTOWER_POLL_INTERVAL=300
     # 也可以指定只监控特定的容器
-    command: --interval 600 clean-home
+    command: --interval 300 clean-home
 
 networks:
   home-network:

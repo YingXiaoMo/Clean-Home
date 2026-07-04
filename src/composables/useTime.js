@@ -1,6 +1,5 @@
-﻿import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import dayjs from 'dayjs';
-import 'dayjs/locale/zh-cn';
 
 export function useTime() {
   const timeData = ref({
@@ -10,12 +9,13 @@ export function useTime() {
   });
 
   let timer = null;
+  const weeks = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
 
   const updateTime = () => {
     const now = dayjs();
     timeData.value = {
       dateParams: now.format('YYYY 年 MM 月 DD 日'),
-      weekday: now.locale('zh-cn').format('dddd'),
+      weekday: weeks[now.day()],
       time: now.format('HH:mm:ss')
     };
   };
