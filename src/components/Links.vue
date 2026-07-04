@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="links-card">
     <div class="header">
       <Icon icon="ri:link" width="20" height="20" />
@@ -6,6 +6,7 @@
     </div>
     
     <swiper
+      v-if="siteLinksList.length > 0"
       :modules="[Pagination, Mousewheel]"
       :slides-per-view="1"
       :space-between="20"
@@ -30,6 +31,9 @@
         </div>
       </swiper-slide>
     </swiper>
+    <div v-else class="empty-links">
+      <span>暂无链接</span>
+    </div>
   </div>
 </template>
 
@@ -120,5 +124,14 @@ const siteLinksList = computed(() => {
   backdrop-filter: blur(10px);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.empty-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
 }
 </style>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="cover" :class="{ 'show': store.backgroundShow }">
     <img
       v-if="imgSrc"
@@ -14,13 +14,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useGlobalStore } from '@/store';
 import { themeConfig } from '@/config';
 
 const store = useGlobalStore();
 const imgSrc = ref('');
 const bgModules = import.meta.glob('@/assets/backgrounds/*.{jpg,jpeg,png,webp,gif,bmp,svg}');
+let loadTimeout = null;
 const loadLocalImage = async () => {
   const keys = Object.keys(bgModules);
   if (keys.length === 0) {
@@ -48,6 +49,7 @@ const loadApiImage = () => {
 };
 
 const handleLoad = () => {
+  if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = null; }
   store.setImgLoadStatus(true);
   nextTick(() => {
     store.backgroundShow = true;
@@ -55,12 +57,25 @@ const handleLoad = () => {
 };
 
 const handleError = () => {
+  if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = null; }
   console.error('❌ 背景图加载失败:', imgSrc.value);
   
   if (themeConfig.background.type === 'local' && imgSrc.value !== themeConfig.background.apiURL) {
-     console.warn('🔄 尝试切换到 API 背景...');
+     console.warn('🔄 本地背景加载失败，尝试切换到 API 背景...');
      loadApiImage();
+     // 重新开始超时兜底，防止 API 图片也挂住
+     loadTimeout = setTimeout(() => {
+       if (!store.imgLoadStatus) {
+         console.warn('⚠️ API 背景图加载超时，强制进入页面');
+         store.setImgLoadStatus(true);
+         store.backgroundShow = true;
+       }
+     }, 5000);
   } else {
+     // 本地和 API 均失败时，强制进入页面（显示纯色背景）
+     if (themeConfig.background.type === 'local') {
+       console.warn('⚠️ 本地与 API 背景均加载失败，使用纯色背景');
+     }
      store.setImgLoadStatus(true);
      store.backgroundShow = true;
   }
@@ -76,7 +91,7 @@ onMounted(() => {
   }
 
   // 超时兜底：5秒后如果背景还未加载完成则强制进入
-  setTimeout(() => {
+  loadTimeout = setTimeout(() => {
     if (!store.imgLoadStatus) {
       console.warn('⚠️ 背景图加载超时，强制进入页面');
       store.setImgLoadStatus(true);
@@ -84,7 +99,10 @@ onMounted(() => {
     }
   }, 5000);
 });
-</script>
+
+onBeforeUnmount(() => {
+  if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = null; }
+});
 
 <style scoped lang="scss">
 .cover {

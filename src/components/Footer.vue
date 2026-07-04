@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="footer-wrapper">
     <Transition name="fade" mode="out-in">
       <div v-if="store.playerState && store.playerLrc" class="lrc-line" :key="'lrc'">
@@ -71,7 +71,6 @@ const loadBusuanzi = () => {
   script.id = 'busuanzi-script';
   script.src = `//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js?t=${Date.now()}`;
   script.async = true;
-  script.referrerPolicy = 'unsafe-url'; 
   document.body.appendChild(script);
 
   if (import.meta.env.DEV) {
@@ -86,22 +85,23 @@ const loadBusuanzi = () => {
   }
 };
 
+/** 确保不蒜子只加载一次 */
 let busuanziLoaded = false;
+function ensureBusuanzi() {
+  if (busuanziLoaded) return;
+  busuanziLoaded = true;
+  loadBusuanzi();
+}
 
 watch(() => store.playerState, (isPlaying) => {
   if (!isPlaying && !busuanziLoaded) {
-    busuanziLoaded = true;
-    nextTick(() => {
-      loadBusuanzi();
-    });
+    nextTick(() => { ensureBusuanzi(); });
   }
 });
 
 onMounted(() => {
   calcRunningDays();
-  setTimeout(() => {
-    loadBusuanzi();
-  }, 1000);
+  setTimeout(() => { ensureBusuanzi(); }, 1000);
 });
 </script>
 
