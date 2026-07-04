@@ -10,7 +10,7 @@
         <Icon icon="ri:skip-back-fill" width="35" height="35" class="icon-btn" />
       </button>
       
-      <div class="play-toggle" @click="onToggle" role="button" tabindex="0" :aria-label="isPlaying ? '暂停' : '播放'" @keydown.space.prevent="onToggle">
+      <div class="play-toggle" @click="onToggle" role="button" tabindex="0" :aria-label="isPlaying ? '暂停' : '播放'" @keydown.space.prevent="onToggle" @keydown.enter.prevent="onToggle">
         <Icon v-if="!isPlaying" icon="ri:play-circle-fill" width="60" height="60" class="icon-btn main-btn" />
         <Icon v-else icon="ri:pause-circle-fill" width="60" height="60" class="icon-btn main-btn" />
       </div>
@@ -71,12 +71,6 @@
         </div>
       </div>
     </Transition>
-
-    <Transition name="lyric-fade">
-      <div class="footer-lyric-bar" v-if="isPlaying && currentLyricText && !listVisible">
-        <span class="text">{{ currentLyricText }}</span>
-      </div>
-    </Transition>
   </Teleport>
 </template>
 
@@ -98,9 +92,16 @@ const currentLyricText = ref("");
 let notifyTimer = null;
 let lrcLines = [];
 
+// 同步播放状态到 store
 watch(isPlaying, (val) => {
+  store.playerState = val;
   if (val) document.body.classList.add('music-playing');
   else document.body.classList.remove('music-playing');
+});
+
+// 同步歌词到 store
+watch(currentLyricText, (val) => {
+  store.playerLrc = val;
 });
 
 onMounted(async () => {
@@ -157,17 +158,22 @@ const updateBySongObject = (song) => {
     cover: song.cover || song.pic,
     lrc: song.lrc
   };
+  // 同步歌曲信息到 store，供顶部通知和 Footer 使用
+  store.playerTitle = currentSong.value.name;
+  store.playerArtist = currentSong.value.artist;
   parseLrc(song.lrc);
 };
 
 const onPlay = () => {
   isPlaying.value = true;
+  store.playerState = true;
   updateByIndex();
   triggerNotify();
 };
 
 const onPause = () => {
   isPlaying.value = false;
+  store.playerState = false;
 };
 
 const onListSwitch = (data) => {
@@ -184,8 +190,7 @@ const onTimeUpdate = (e) => {
       updateByIndex();
   }
 
-  // 兼容数字和 DOM Event 两种传参方式
-  // APlayer timeupdate 可能传数字（currentTime）或 Event 对象
+  // APlayer timeupdate 事件传递当前播放时间（秒）
   let time = 0;
   if (typeof e === 'number') {
     time = e;
@@ -229,7 +234,9 @@ const parseLrc = async (lrcUrl) => {
         if (text) lrcLines.push({ time, text });
       }
     });
-  } catch (e) {}
+  } catch (e) {
+    console.warn('歌词解析失败:', e);
+  }
 };
 </script>
 
@@ -290,20 +297,8 @@ const parseLrc = async (lrcUrl) => {
 .notify-capsule .text-info .name { font-weight: bold; }
 .notify-capsule .text-info .artist { opacity: 0.8; font-size: 12px; }
 
-.footer-lyric-bar {
-  position: fixed; bottom: 0; left: 0; width: 100%; height: 46px; 
-  display: flex; align-items: center; justify-content: center; z-index: 2000; pointer-events: none;
-}
-.footer-lyric-bar .text {
-  font-size: 14px; color: rgba(255, 255, 255, 0.85); 
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  max-width: 85%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 1px;
-}
-
 body.music-playing footer, body.music-playing .footer { opacity: 0 !important; transition: opacity 0.3s ease; }
 @keyframes rotate-cover { to { transform: rotate(360deg); } }
 .notify-slide-enter-active, .notify-slide-leave-active { transition: all 0.4s ease; }
 .notify-slide-enter-from, .notify-slide-leave-to { opacity: 0; transform: translateY(-30px); }
-.lyric-fade-enter-active, .lyric-fade-leave-active { transition: all 0.5s ease; }
-.lyric-fade-enter-from, .lyric-fade-leave-to { opacity: 0; transform: translateY(10px); }
 </style>
