@@ -91,6 +91,7 @@ const showNotify = ref(false);
 const currentLyricText = ref("");
 let notifyTimer = null;
 let lrcLines = [];
+let lrcAbortController = null;
 
 // 同步播放状态到 store
 watch(isPlaying, (val) => {
@@ -120,6 +121,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (notifyTimer) clearTimeout(notifyTimer);
+  if (lrcAbortController) lrcAbortController.abort();
   document.body.classList.remove('music-playing');
 });
 
@@ -219,8 +221,13 @@ const parseLrc = async (lrcUrl) => {
   lrcLines = [];
   currentLyricText.value = " ";
   if (!lrcUrl) return;
+
+  // 取消上一次歌词请求
+  if (lrcAbortController) lrcAbortController.abort();
+  lrcAbortController = new AbortController();
+
   try {
-    const res = await fetch(lrcUrl);
+    const res = await fetch(lrcUrl, { signal: lrcAbortController.signal });
     const text = await res.text();
     text.split('\n').forEach(line => {
       const match = /^\[(\d{2}):(\d{2})\.(\d{1,3})\](.*)$/.exec(line);

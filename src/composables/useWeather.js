@@ -31,7 +31,7 @@ const FREE_IP_APIS = [
     url: 'https://api.vore.top/api/IPdata', 
     handler: (data) => {
       if (data.code === 200 && data.ipdata) {
-        return { city: data.ipdata.info2, ip: data.ipinfo?.text }; 
+        return { city: data.ipdata.info2, ip: data.ipinfo?.text || data.ip }; 
       }
       return null;
     }
@@ -121,10 +121,7 @@ const getLocationByFreeApi = async () => {
   console.log('🌍 尝试免费第三方 IP 定位 (Vore/Xxapi)...');
   for (const api of FREE_IP_APIS) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT); 
-      const res = await fetch(api.url, { signal: controller.signal });
-      clearTimeout(timeoutId);
+      const res = await fetchWithTimeout(api.url);
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();

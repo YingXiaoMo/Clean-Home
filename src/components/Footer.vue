@@ -71,7 +71,6 @@ const loadBusuanzi = () => {
   script.id = 'busuanzi-script';
   script.src = `//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js?t=${Date.now()}`;
   script.async = true;
-  script.referrerPolicy = 'unsafe-url'; 
   document.body.appendChild(script);
 
   if (import.meta.env.DEV) {
