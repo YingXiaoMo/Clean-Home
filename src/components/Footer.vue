@@ -2,24 +2,23 @@
   <div class="footer-wrapper">
     <Transition name="fade" mode="out-in">
       <div v-if="store.playerState && store.playerLrc" class="lrc-line" :key="'lrc'">
-        <Icon icon="ri:music-2-fill" width="18" height="18" />
-        <span class="text">{{ store.playerLrc }}</span>
-        <Icon icon="ri:music-2-fill" width="18" height="18" />
+        <Icon icon="ri:music-2-fill" width="16" height="16" class="lrc-icon" />
+        <span class="text marquee"><span class="marquee-inner">{{ store.playerLrc }}</span></span>
+        <Icon icon="ri:music-2-fill" width="16" height="16" class="lrc-icon" />
       </div>
 
       <div v-else class="copyright" :key="'copy'">
-        
         <span>&copy; {{ copyrightDate }}</span>
-        
+
         <span class="author-link">
-          Theme by 
+          Theme by
           <a :href="sys.p" target="_blank">{{ sys.n }}</a>
         </span>
-        
+
         <span class="split">|</span>
-        
+
         <a href="https://beian.miit.gov.cn/" target="_blank">{{ siteConfig.icp }}</a>
-        
+
         <span class="split hidden-mobile">|</span>
         <span class="running-time hidden-mobile">已运行 {{ runningDays }} 天</span>
 
@@ -71,7 +70,7 @@ const loadBusuanzi = () => {
   script.id = 'busuanzi-script';
   script.src = `//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js?t=${Date.now()}`;
   script.async = true;
-  script.referrerPolicy = 'unsafe-url'; 
+  script.referrerPolicy = 'unsafe-url';
   document.body.appendChild(script);
 
   if (import.meta.env.DEV) {
@@ -86,7 +85,6 @@ const loadBusuanzi = () => {
   }
 };
 
-/** 确保不蒜子只加载一次 */
 let busuanziLoaded = false;
 function ensureBusuanzi() {
   if (busuanziLoaded) return;
@@ -122,12 +120,38 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  max-width: 90vw;
+  overflow: hidden;
+
+  .lrc-icon {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
   .text {
-    max-width: 80vw;
+    flex: 1;
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
   }
+
+  .marquee {
+    position: relative;
+    overflow: hidden;
+
+    .marquee-inner {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee 12s linear infinite;
+      padding-left: 0;
+    }
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  10% { transform: translateX(0); }
+  85% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
 }
 
 .copyright {
@@ -159,7 +183,7 @@ onMounted(() => {
     display: flex;
     align-items: center;
   }
-  
+
   .author-link {
     font-weight: 500;
   }

@@ -9,7 +9,7 @@
     <meta name="description" content="欢迎来到天天的个人主页。这是一个记录生活碎片、收集灵感糖果的小站。基于 Vue3 + Vite 构建，提供极简、快速的访问体验。" />
     <meta name="keywords" content="天天, YingXiaoMo, ovo, 个人主页, 好看的个人主页，个人主页模版，导航页, 博客, Vue3, Vite, 极简主页" />
     <meta name="author" content="天天" />
-    <meta name="theme-color" content="#424242" />
+    <meta name="theme-color" content="#1a1a2e" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content="天天 - 极简个人主页" />
@@ -29,14 +29,16 @@
       body { 
         margin: 0; 
         padding: 0; 
-        background: #222; 
-        font-family: sans-serif;
+        background: #1a1a2e; 
+        font-family: "Microsoft YaHei", sans-serif;
       }
       #app-loading {
         position: fixed;
         top: 0; left: 0;
         width: 100%; height: 100%;
-        background: #111; 
+        background: radial-gradient(ellipse at top left, rgba(79,172,254,0.08) 0%, transparent 50%),
+                    radial-gradient(ellipse at bottom right, rgba(0,242,254,0.06) 0%, transparent 50%),
+                    #1a1a2e;
         z-index: 99999;
         display: flex;
         flex-direction: column;
@@ -45,21 +47,22 @@
         color: rgba(255, 255, 255, 0.9);
       }
       .loader {
-        width: 48px; height: 48px;
-        border: 4px solid #FFF;
-        border-bottom-color: transparent;
+        width: 44px; height: 44px;
+        border: 3px solid rgba(255, 255, 255, 0.08);
+        border-top-color: rgba(255, 255, 255, 0.9);
         border-radius: 50%;
         display: inline-block;
         box-sizing: border-box;
-        animation: rotation 1s linear infinite;
-        margin-bottom: 15px;
+        animation: spin 0.9s linear infinite;
+        margin-bottom: 18px;
       }
       .text {
-        font-size: 1.1rem;
-        letter-spacing: 2px;
-        font-weight: bold;
+        font-size: 1rem;
+        letter-spacing: 4px;
+        font-weight: 300;
+        opacity: 0.7;
       }
-      @keyframes rotation {
+      @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }

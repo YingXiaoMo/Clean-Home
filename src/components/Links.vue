@@ -4,7 +4,7 @@
       <Icon icon="ri:link" width="20" height="20" />
       <span class="title">网站列表</span>
     </div>
-    
+
     <swiper
       v-if="siteLinksList.length > 0"
       :modules="[Pagination, Mousewheel]"
@@ -16,11 +16,11 @@
     >
       <swiper-slide v-for="(page, pIndex) in siteLinksList" :key="pIndex">
         <div class="link-grid">
-          <a 
-            v-for="(item, index) in page" 
-            :key="index" 
-            :href="item.link" 
-            target="_blank" 
+          <a
+            v-for="(item, index) in page"
+            :key="index"
+            :href="item.link"
+            target="_blank"
             class="link-item glass-card"
           >
             <div class="icon-box">
@@ -46,10 +46,12 @@ import 'swiper/css/pagination';
 import { Icon } from '@iconify/vue';
 import { siteLinks } from '@/config';
 
+const LINK_PAGE_SIZE = 6;
+
 const siteLinksList = computed(() => {
   const result = [];
-  for (let i = 0; i < siteLinks.length; i += 6) {
-    result.push(siteLinks.slice(i, i + 6));
+  for (let i = 0; i < siteLinks.length; i += LINK_PAGE_SIZE) {
+    result.push(siteLinks.slice(i, i + LINK_PAGE_SIZE));
   }
   return result;
 });
@@ -59,7 +61,7 @@ const siteLinksList = computed(() => {
 .links-card {
   width: 100%;
   margin-top: 0;
-  
+
   .header {
     display: flex;
     align-items: center;
@@ -71,7 +73,7 @@ const siteLinksList = computed(() => {
   .link-swiper {
     width: 100%;
     padding-bottom: 30px;
-    
+
     :deep(.swiper-pagination-bullet) {
       background: #fff;
       opacity: 0.4;
@@ -83,11 +85,16 @@ const siteLinksList = computed(() => {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 25px;
-    
+
     @media (max-width: 720px) {
       grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
     }
-    
+
+    @media (max-width: 400px) {
+      gap: 12px;
+    }
+
     .link-item {
       height: 120px;
       display: flex;
@@ -96,18 +103,29 @@ const siteLinksList = computed(() => {
       justify-content: center;
       color: white;
       text-decoration: none;
-      transition: 0.3s;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       padding: 0 10px;
 
       &:hover {
-        background: rgba(0,0,0,0.4);
+        background: rgba(0, 0, 0, 0.4);
         transform: translateY(-5px);
+
+        .icon-box {
+          transform: translateY(-3px) scale(1.1);
+        }
       }
 
-      .icon-box { margin-bottom: 10px; }
-      
-      .name { 
-        font-size: 1.1rem; 
+      &:active {
+        transform: translateY(-2px) scale(0.97);
+      }
+
+      .icon-box {
+        margin-bottom: 10px;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .name {
+        font-size: 1.1rem;
         opacity: 0.9;
         width: 100%;
         text-align: center;

@@ -1,24 +1,24 @@
 ﻿<template>
   <Transition name="fade" mode="out-in">
     <div class="loading" v-if="!store.imgLoadStatus">
-      
+
       <div class="loading-orb orb-1"></div>
       <div class="loading-orb orb-2"></div>
 
       <div class="loading-box">
         <div class="particles-container">
-          <div 
-            v-for="(p, index) in particles" 
-            :key="index" 
-            class="particle" 
+          <div
+            v-for="(p, index) in particles"
+            :key="index"
+            class="particle"
             :style="p.style"
           ></div>
         </div>
 
         <img :src="themeConfig.siteLogo" alt="Logo" class="loading-logo" />
-        
+
         <div class="loader"></div>
-        
+
         <span class="loading-text">Loading...</span>
       </div>
     </div>
@@ -42,7 +42,7 @@
           <InfoCard />
           <SocialLinks />
         </section>
-        
+
         <section class="right-col">
           <div class="func-row">
             <div class="switcher-box">
@@ -64,7 +64,7 @@
           <Links />
         </section>
       </div>
-      
+
       <footer class="footer">
         <Footer />
       </footer>
@@ -91,11 +91,11 @@ const store = useGlobalStore();
 const musicNotifyShow = ref(false);
 let notifyTimer = null;
 
-const particleCount = 50; 
+const particleCount = 50;
 const particles = Array.from({ length: particleCount }, (_, i) => {
-  const angle = Math.random() * 360; 
-  const distance = 200 + Math.random() * 200; 
-  const delay = Math.random() * 2; 
+  const angle = Math.random() * 360;
+  const distance = 200 + Math.random() * 200;
+  const delay = Math.random() * 2;
   const size = 2 + Math.random() * 3;
   const duration = 1.5 + Math.random();
 
@@ -103,7 +103,7 @@ const particles = Array.from({ length: particleCount }, (_, i) => {
     style: {
       '--angle': `${angle}deg`,
       '--dist': `${distance}px`,
-      '--delay': `-${delay}s`, 
+      '--delay': `-${delay}s`,
       '--dur': `${duration}s`,
       '--size': `${size}px`
     }
@@ -125,27 +125,27 @@ watch(() => store.playerTitle, (newVal) => {
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body { 
-  width: 100%; 
+body {
+  width: 100%;
   min-height: 100vh;
-  overflow-x: hidden; 
-  background: #222; 
-  font-family: "Microsoft YaHei", sans-serif; 
+  overflow-x: hidden;
+  background: #222;
+  font-family: "Microsoft YaHei", sans-serif;
 }
 
-.loading { 
-  position: fixed; 
-  top: 0; left: 0; 
-  width: 100%; height: 100%; 
-  background: rgba(20, 20, 20, 0.75); 
-  backdrop-filter: blur(20px); 
+.loading {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  color: #fff; 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  z-index: 9999; 
-  overflow: hidden; 
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  overflow: hidden;
 }
 
 .loading-orb {
@@ -158,12 +158,12 @@ body {
 }
 .orb-1 {
   width: 300px; height: 300px;
-  background: #4facfe; 
+  background: #4facfe;
   top: -50px; left: -50px;
 }
 .orb-2 {
   width: 400px; height: 400px;
-  background: #00f2fe; 
+  background: #00f2fe;
   bottom: -100px; right: -100px;
   animation-delay: -4s;
 }
@@ -179,10 +179,10 @@ body {
 
 .particles-container {
   position: absolute;
-  top: 40px; 
+  top: 40px;
   left: 50%;
   width: 0; height: 0;
-  z-index: -1; 
+  z-index: -1;
 }
 
 .particle {
@@ -194,7 +194,7 @@ body {
   border-radius: 50%;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
   opacity: 0;
-  
+
   animation: gather var(--dur) linear infinite;
   animation-delay: var(--delay);
 }
@@ -236,11 +236,11 @@ body {
     opacity: 0;
   }
   20% {
-    opacity: 1; 
+    opacity: 1;
   }
   100% {
-    transform: rotate(var(--angle)) translateX(0); 
-    opacity: 0; 
+    transform: rotate(var(--angle)) translateX(0);
+    opacity: 0;
   }
 }
 
@@ -260,20 +260,20 @@ body {
 }
 
 .music-notify {
-  position: fixed; 
-  top: 70px; 
-  left: 50%; 
-  transform: translateX(-50%); 
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.6); 
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
-  padding: 8px 20px; 
-  border-radius: 20px; 
-  color: #fff; 
+  padding: 8px 20px;
+  border-radius: 20px;
+  color: #fff;
   font-size: 14px;
-  display: flex; 
-  align-items: center; 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   white-space: nowrap;
   border: 1px solid rgba(255,255,255,0.1);
 }
@@ -289,15 +289,15 @@ body {
 
 .content {
   display: flex; width: 100%; max-width: 1200px;
-  justify-content: center; align-items: center; 
-  gap: 80px; 
+  justify-content: center; align-items: center;
+  gap: 80px;
 }
 
 .left-col { flex: 0 0 40%; max-width: 450px; }
-.right-col { 
-  flex: 0 0 50%; max-width: 550px; 
-  display: flex; flex-direction: column; 
-  gap: 30px; 
+.right-col {
+  flex: 0 0 50%; max-width: 550px;
+  display: flex; flex-direction: column;
+  gap: 30px;
 }
 
 .func-row {
@@ -316,14 +316,14 @@ body {
   }
 
   .main-container { position: static; display: block; height: auto; min-height: 100vh; padding: 40px 20px; overflow-y: visible; }
-  .content { flex-direction: column; gap: 40px; } 
+  .content { flex-direction: column; gap: 32px; }
   .left-col, .right-col { width: 100%; max-width: 100%; flex: none; }
   .func-row {
-    height: auto; flex-direction: column; gap: 0;
-    .switcher-box { height: 180px; width: 100%; flex: none; margin-bottom: 25px; } 
-    .col-weather { height: 180px; width: 100%; flex: none; }
+    height: auto; flex-direction: column; gap: 16px;
+    .switcher-box { height: 170px; width: 100%; flex: none; }
+    .col-weather { height: 170px; width: 100%; flex: none; }
   }
-  .footer { position: static; margin-top: 50px; margin-bottom: 20px; }
+  .footer { position: static; margin-top: 40px; margin-bottom: 20px; }
 }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.6s ease; }
