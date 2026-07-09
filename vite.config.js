@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import viteCompression from 'vite-plugin-compression'
 
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [
     vue(),
     // 压缩插件在 CI 环境（Cloudflare Pages 等）可能导致构建卡死，CI 时自动跳过
